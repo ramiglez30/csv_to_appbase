@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Probando CSV-Jquery</title>
+    
+
+    <link href="css/bootstrap.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <h1>Loading CSV</h1>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2>Import file:</h2>
+            </div>
+            <div class="panel-body">
+               
+                <div>
+                    <input id="csv_file_input" type="file" accept=".csv" /><br />
+
+                    <label>File content:</label>
+                    <textarea id="file_content" class="form-control" style="min-height:300px"></textarea>
+
+                    <br />
+                    <div>
+                        <b> <input type="checkbox" value="false" /> <span>Is first row column headings?</span></b>
+                    </div>
+                    <br />
+                    <label>Number of columns: <span id="col_count"></span></label><br /><br />
+                    <label>Json Data</label>
+                    <textarea class="form-control" id="converted" style="min-height:300px"></textarea>
+                </div>
+               </div>
+            
+        </div>
+    </div>
+    <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/csv_loader.js"></script>
+    <script src="js/papaparse.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#csv_file_input').bind('change', function(event) {
+                var input = event.target;
+
+                var reader = new FileReader();
+                reader.onload = function(){
+                    var text = reader.result.split(' ').filter(n => n).join(' ');
+                    var content= document.getElementById('file_content');
+                    content.value = text;
+                    parseCSVtoJSON();
+                 };
+                reader.readAsText(input.files[0]);
+            });
+
+            $("#file_content").on("input", function (event) {
+                parseCSVtoJSON();
+            });
+            var parseCSVtoJSON = function () {
+                var converted = document.getElementById('converted');
+                var json_array = Papa.parse($('#file_content').val(), { dynamicTyping: true, header:true });
+                $('#col_count').html(json_array.data[0].length);
+                converted.value = JSON.stringify(json_array);
+            }
+        });
+
+    </script>
+</body>
+</html>
