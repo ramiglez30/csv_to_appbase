@@ -30,6 +30,28 @@
                     <label>Json Data</label>
                     <textarea class="form-control" id="converted" style="min-height:100px"></textarea>
                 </div>
+                
+                
+                <div class="panel panel-default">
+                    <div class="panel-heading form-group">
+                        <h3>Mapping</h3>
+                         <label>Select FORM to send data:</label>
+                        <select class="form-control form-control" id="form_names">
+                           <option id="op_0_select">Select...</option>
+                        </select>
+                    </div>
+                    <div class="panel-body">
+                        <table id="table_mapping" class="table">
+                            <thead><tr><th style="width:70px">index</th><th>CSV Columns</th><th>Data Sample</th><th>FORM Columns</th></tr></thead>
+                            <tbody>
+                                
+                            </tbody>
+                          
+                        </table>
+                 
+                    </div>
+                   
+                </div>
                </div>
             
         </div>
@@ -63,10 +85,14 @@
                 var converted = document.getElementById('converted');
                 var is_first_line_header = document.getElementById('first_line_header_check').checked;
              
-                var json_array = Papa.parse($('#file_content').val(), { dynamicTyping: true, header: is_first_line_header });
+                var json_array = Papa.parse($('#file_content').val(), { dynamicTyping: true, header: false });
                 $('#col_count').html(json_array.data[0].length);
                 converted.value = JSON.stringify(json_array);
             }
+            
+           var Seed_Mapping = function(forms, form_name {
+               
+           }
         });
 
     </script>
