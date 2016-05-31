@@ -1,7 +1,7 @@
 $.extend({
     appBaseService: new function() {
         var self = this;
-        var formsArray = Array();
+        var formsArray = null;
 
         self.initialize = function() {
             attachBehavior();
@@ -10,14 +10,25 @@ $.extend({
 
         var attachBehavior = function() {
 
-            parseFormRows(formsMock());
         };
 
         self.getFormObj = function(formName) {
+            if (formsArray == null) {
+                requestForms(this);
+            }
             return formsArray[formName];
         }
 
-        var requestForms = function() {
+        self.getForms = function() {
+
+            if (formsArray == null) {
+                requestForms(this);
+            } else {
+                return formsArray;
+            }
+        }
+
+        var requestForms = function(callback) {
             formsArray = Array();
             $.ajax({
                 type: 'GET',
@@ -27,14 +38,16 @@ $.extend({
                 data: {
                     command: 'SHOW FORMS'
                 },
-                success: parseFormRows,
+                success: function(result) {
+                    parseFormRows(result, callback)
+                },
                 error: function() {
 
                 }
             });
         };
 
-        var parseFormRows = function(result) {
+        var parseFormRows = function(result, callback) {
             if (result.code != 100) {
                 return;
             }
@@ -59,6 +72,10 @@ $.extend({
                     });
                 }
 
+            }
+
+            if (callback != undefined) {
+                callback();
             }
         }
 
