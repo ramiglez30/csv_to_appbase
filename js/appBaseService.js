@@ -1,34 +1,37 @@
 $.extend({
-    appBaseService: new function() {
+    appBaseService: new function () {
         var self = this;
         var formsArray = null;
 
-        self.initialize = function() {
+        self.initialize = function () {
             attachBehavior();
-            requestForms();
+            //requestForms();
         };
 
-        var attachBehavior = function() {
+        var attachBehavior = function () {
 
         };
 
-        self.getFormObj = function(formName) {
+        self.getFormObj = function (formName, getFormCallback) {
             if (formsArray == null) {
-                requestForms(this);
-            }
-            return formsArray[formName];
-        }
-
-        self.getForms = function() {
-
-            if (formsArray == null) {
-                requestForms(this);
+                requestForms(function (formsArray) {
+                    getFormCallback(formsArray[formName]);
+                });
             } else {
-                return formsArray;
+                getFormCallback(formsArray[formName]);
             }
         }
 
-        var requestForms = function(callback) {
+        self.getForms = function (getFormsCallback) {
+
+            if (formsArray == null) {
+                requestForms(getFormsCallback);
+            } else {
+                getFormsCallback(formsArray);
+            }
+        }
+
+        var requestForms = function (callback) {
             formsArray = Array();
             $.ajax({
                 type: 'GET',
@@ -38,16 +41,16 @@ $.extend({
                 data: {
                     command: 'SHOW FORMS'
                 },
-                success: function(result) {
+                success: function (result) {
                     parseFormRows(result, callback)
                 },
-                error: function() {
+                error: function () {
 
                 }
             });
         };
 
-        var parseFormRows = function(result, callback) {
+        var parseFormRows = function (result, callback) {
             if (result.code != 100) {
                 return;
             }
@@ -75,11 +78,11 @@ $.extend({
             }
 
             if (callback != undefined) {
-                callback();
+                callback(formsArray);
             }
         }
 
-        var formsMock = function() {
+        var formsMock = function () {
             return {
                 "code": 100,
                 "message": "29 forms found.",
@@ -89,42 +92,42 @@ $.extend({
                         "type": "TEXT",
                         "referencedData": []
                     }, {
-                        "label": "FormVersion",
-                        "type": "NUMBER",
-                        "referencedData": []
-                    }, {
-                        "label": "DataLabel",
-                        "type": "TEXT",
-                        "referencedData": []
-                    }, {
-                        "label": "DataType",
-                        "type": "TEXT",
-                        "referencedData": []
-                    }, {
-                        "label": "DataOrder",
-                        "type": "NUMBER",
-                        "referencedData": []
-                    }, {
-                        "label": "IsReference",
-                        "type": "BOOLEAN",
-                        "referencedData": []
-                    }, {
-                        "label": "FormReferenced",
-                        "type": "TEXT",
-                        "referencedData": []
-                    }, {
-                        "label": "DataReferenced",
-                        "type": "TEXT",
-                        "referencedData": []
-                    }, {
-                        "label": "Min",
-                        "type": "NUMBER",
-                        "referencedData": []
-                    }, {
-                        "label": "Max",
-                        "type": "NUMBER",
-                        "referencedData": []
-                    }],
+                            "label": "FormVersion",
+                            "type": "NUMBER",
+                            "referencedData": []
+                        }, {
+                            "label": "DataLabel",
+                            "type": "TEXT",
+                            "referencedData": []
+                        }, {
+                            "label": "DataType",
+                            "type": "TEXT",
+                            "referencedData": []
+                        }, {
+                            "label": "DataOrder",
+                            "type": "NUMBER",
+                            "referencedData": []
+                        }, {
+                            "label": "IsReference",
+                            "type": "BOOLEAN",
+                            "referencedData": []
+                        }, {
+                            "label": "FormReferenced",
+                            "type": "TEXT",
+                            "referencedData": []
+                        }, {
+                            "label": "DataReferenced",
+                            "type": "TEXT",
+                            "referencedData": []
+                        }, {
+                            "label": "Min",
+                            "type": "NUMBER",
+                            "referencedData": []
+                        }, {
+                            "label": "Max",
+                            "type": "NUMBER",
+                            "referencedData": []
+                        }],
                     "rows": [
                         ["FORM_WITH_IMG", "1", "NAME", "TEXT", "0", "false", null, null, null, null],
                         ["FORM_WITH_IMG", "1", "IMG", "IMAGE", "1", "false", null, null, null, null],
@@ -226,6 +229,6 @@ $.extend({
     }
 });
 
-$(function() {
+$(function () {
     $.appBaseService.initialize();
 })

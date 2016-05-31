@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title>Probando CSV-Jquery</title>
-    
+    <title>Probando CSV-Jquery</title>
+
 
     <link href="css/bootstrap.css" rel="stylesheet" />
 </head>
+
 <body>
     <div class="container">
         <h1>Loading CSV</h1>
@@ -14,7 +16,7 @@
                 <h2>Import file:</h2>
             </div>
             <div class="panel-body">
-               
+
                 <div>
                     <input id="csv_file_input" type="file" accept=".csv" /><br />
 
@@ -30,30 +32,37 @@
                     <label>Json Data</label>
                     <textarea class="form-control" id="converted" style="min-height:100px"></textarea>
                 </div>
-                
-                
+
+
                 <div class="panel panel-default">
                     <div class="panel-heading form-group">
                         <h3>Mapping</h3>
-                         <label>Select FORM to send data:</label>
+                        <label>Select FORM to send data:</label>
                         <select class="form-control form-control" id="form_names">
                            <option id="op_0_select">Select...</option>
                         </select>
                     </div>
                     <div class="panel-body">
                         <table id="table_mapping" class="table">
-                            <thead><tr><th style="width:70px">index</th><th>CSV Columns</th><th>Data Sample</th><th>FORM Columns</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th style="width:70px">index</th>
+                                    <th>CSV Columns</th>
+                                    <th>Data Sample</th>
+                                    <th>FORM Columns</th>
+                                </tr>
+                            </thead>
                             <tbody>
-                                
+
                             </tbody>
-                          
+
                         </table>
-                 
+
                     </div>
-                   
+
                 </div>
-               </div>
-            
+            </div>
+
         </div>
     </div>
     <script src="js/jquery-1.12.4.min.js"></script>
@@ -61,41 +70,44 @@
     <script src="js/csv_loader.js"></script>
     <script src="js/papaparse.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#csv_file_input').bind('change', function(event) {
                 var input = event.target;
 
                 var reader = new FileReader();
-                reader.onload = function(){
+                reader.onload = function() {
                     var text = reader.result.split(' ').filter(n => n).join(' ');
-                    var content= document.getElementById('file_content');
+                    var content = document.getElementById('file_content');
                     content.value = text;
                     parseCSVtoJSON();
-                 };
+                };
                 reader.readAsText(input.files[0]);
             });
             $('input[type=checkbox]').on('change', function() {
-                 parseCSVtoJSON();
+                parseCSVtoJSON();
             })
 
-            $("#file_content").on("input", function (event) {
+            $("#file_content").on("input", function(event) {
                 parseCSVtoJSON();
             });
-            var parseCSVtoJSON = function () {
+            var parseCSVtoJSON = function() {
                 var converted = document.getElementById('converted');
                 var is_first_line_header = document.getElementById('first_line_header_check').checked;
-             
-                var json_array = Papa.parse($('#file_content').val(), { dynamicTyping: true, header: false });
+
+                var json_array = Papa.parse($('#file_content').val(), {
+                    dynamicTyping: true,
+                    header: false
+                });
                 $('#col_count').html(json_array.data[0].length);
                 converted.value = JSON.stringify(json_array);
             }
-            
-           /*var Seed_Mapping = function(forms, form_name {
-               
-           }*/
-        });
 
+            /*var Seed_Mapping = function(forms, form_name {
+                
+            }*/
+        });
     </script>
     <script src="js/appBaseService.js"></script>
 </body>
+
 </html>
