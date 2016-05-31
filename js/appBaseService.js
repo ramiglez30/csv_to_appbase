@@ -1,28 +1,135 @@
 $.extend({
-    appBaseService: new function () {
+    appBaseService: new function() {
         var self = this;
         var formsArray = null;
 
-        self.initialize = function () {
+        self.initialize = function() {
             attachBehavior();
             //requestForms();
         };
 
-        var attachBehavior = function () {
-
+        var attachBehavior = function() {
+            /* var maping = {
+                 formName: 'SEX',
+                 isFirstColumnHeading: false,
+                 dataMapping: [{
+                     fileColumn: {
+                         number: 0,
+                         isIgnored: false
+                     },
+                     formColumn: {
+                         name: 'SEX',
+                         type: 'TEXT',
+                         order: 0
+                     }
+                 }]
+             }
+             var data = [
+                 ["M"],
+                 ["F"],
+                 ["F"],
+                 ["F"]
+             ]
+             self.storeFormData(maping, data);
+             */
         };
 
-        self.getFormObj = function (formName, getFormCallback) {
+        /* Este metodo permite hacer el store del maping siguiendo el esquema de ejemplo. No esta totalmente funcional pues hay 
+        * todavia un bug que no pude resolver en el store con el appBase
+        *ejemplo de objeto de maping
+        maping = {
+                 formName: '',
+                 isFirstColumnHeading: false,
+                 dataMapping: [{
+                     fileColumn: {
+                         number: -1,
+                         isIgnored: false
+                     },
+                     formColumn: {
+                         name: '',
+                         type: '',
+                         order: -1
+                     }
+                 }]
+             }
+        *--Ejemplo del dataArray 
+        *data = [
+                 ["M"],
+                 ["F"],
+                 ["F"],
+                 ["F"]
+             ]
+        * ejemplo del callback
+        object = {
+                  current: item actual que se inserto, esto pensando en poder poner una barra de progreso,
+                  total: total de elementos a almacenar
+                    }
+        */
+        self.storeFormData = function(mappingObj, dataArray, callback) {
+
+            var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
+            var dataMapping = mappingObj.dataMapping;
+            var dataLength = dataArray.length;
+
+            for (var i = isFirstColumnHeading == true ? 1 : 0; i < dataArray.length; i++) {
+                var storeDataArray = Array();
+                var dataRow = dataArray[i];
+
+                for (var item in dataMapping) {
+                    var mappingItem = dataMapping[item];
+                    if (!mappingItem.fileColumn.isIgnored) {
+                        var dataColumn = dataRow[mappingItem.fileColumn.number];
+                        storeDataArray.splice(mappingItem.formColumn.order, 0, dataColumn);
+                    } else {
+                        storeDataArray.splice(mappingItem.formColumn.order, 0, '');
+                    }
+                }
+
+                var formQuery = storeDataArray.join(',');
+                if (callback != undefined) {
+                    callback({
+                        current: i,
+                        total: dataLength
+                    });
+                }
+                /*
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
+                    cache: false,
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        command: 'Create New ' + mappingObj.formName + '("' + formQuery + '")'
+                       },
+                    success: function(result) {
+                            if (callback != undefined) {
+                            callback({
+                                    current: i,
+                                    total: dataLength
+                            });
+                        }
+                    },
+                    error: function() {
+ 
+                    }
+                });
+                */
+
+            }
+        };
+
+        self.getFormObj = function(formName, getFormCallback) {
             if (formsArray == null) {
-                requestForms(function (formsArray) {
+                requestForms(function(formsArray) {
                     getFormCallback(formsArray[formName]);
                 });
             } else {
                 getFormCallback(formsArray[formName]);
             }
-        }
+        };
 
-        self.getForms = function (getFormsCallback) {
+        self.getForms = function(getFormsCallback) {
 
             if (formsArray == null) {
                 requestForms(getFormsCallback);
@@ -31,7 +138,7 @@ $.extend({
             }
         }
 
-        var requestForms = function (callback) {
+        var requestForms = function(callback) {
             formsArray = Array();
             $.ajax({
                 type: 'GET',
@@ -41,16 +148,16 @@ $.extend({
                 data: {
                     command: 'SHOW FORMS'
                 },
-                success: function (result) {
+                success: function(result) {
                     parseFormRows(result, callback)
                 },
-                error: function () {
+                error: function() {
 
                 }
             });
         };
 
-        var parseFormRows = function (result, callback) {
+        var parseFormRows = function(result, callback) {
             if (result.code != 100) {
                 return;
             }
@@ -65,13 +172,15 @@ $.extend({
                         formName: formName,
                         properties: [{
                             name: rows[form][2],
-                            type: rows[form][3]
+                            type: rows[form][3],
+                            order: rows[form][4]
                         }]
                     }
                 } else {
                     formObj.properties.push({
                         name: rows[form][2],
-                        type: rows[form][3]
+                        type: rows[form][3],
+                        order: rows[form][4]
                     });
                 }
 
@@ -80,9 +189,9 @@ $.extend({
             if (callback != undefined) {
                 callback(formsArray);
             }
-        }
+        };
 
-        var formsMock = function () {
+        var formsMock = function() {
             return {
                 "code": 100,
                 "message": "29 forms found.",
@@ -92,42 +201,42 @@ $.extend({
                         "type": "TEXT",
                         "referencedData": []
                     }, {
-                            "label": "FormVersion",
-                            "type": "NUMBER",
-                            "referencedData": []
-                        }, {
-                            "label": "DataLabel",
-                            "type": "TEXT",
-                            "referencedData": []
-                        }, {
-                            "label": "DataType",
-                            "type": "TEXT",
-                            "referencedData": []
-                        }, {
-                            "label": "DataOrder",
-                            "type": "NUMBER",
-                            "referencedData": []
-                        }, {
-                            "label": "IsReference",
-                            "type": "BOOLEAN",
-                            "referencedData": []
-                        }, {
-                            "label": "FormReferenced",
-                            "type": "TEXT",
-                            "referencedData": []
-                        }, {
-                            "label": "DataReferenced",
-                            "type": "TEXT",
-                            "referencedData": []
-                        }, {
-                            "label": "Min",
-                            "type": "NUMBER",
-                            "referencedData": []
-                        }, {
-                            "label": "Max",
-                            "type": "NUMBER",
-                            "referencedData": []
-                        }],
+                        "label": "FormVersion",
+                        "type": "NUMBER",
+                        "referencedData": []
+                    }, {
+                        "label": "DataLabel",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "DataType",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "DataOrder",
+                        "type": "NUMBER",
+                        "referencedData": []
+                    }, {
+                        "label": "IsReference",
+                        "type": "BOOLEAN",
+                        "referencedData": []
+                    }, {
+                        "label": "FormReferenced",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "DataReferenced",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "Min",
+                        "type": "NUMBER",
+                        "referencedData": []
+                    }, {
+                        "label": "Max",
+                        "type": "NUMBER",
+                        "referencedData": []
+                    }],
                     "rows": [
                         ["FORM_WITH_IMG", "1", "NAME", "TEXT", "0", "false", null, null, null, null],
                         ["FORM_WITH_IMG", "1", "IMG", "IMAGE", "1", "false", null, null, null, null],
@@ -229,6 +338,6 @@ $.extend({
     }
 });
 
-$(function () {
+$(function() {
     $.appBaseService.initialize();
 })
