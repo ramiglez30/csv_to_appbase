@@ -19,16 +19,16 @@
                     <input id="csv_file_input" type="file" accept=".csv" /><br />
 
                     <label>File content:</label>
-                    <textarea id="file_content" class="form-control" style="min-height:300px"></textarea>
+                    <textarea id="file_content" class="form-control" style="min-height:100px"></textarea>
 
                     <br />
                     <div>
-                        <b> <input type="checkbox" value="false" /> <span>Is first row column headings?</span></b>
+                        <b> <input id="first_line_header_check" type="checkbox" /> <span>Is first row column headings?</span></b>
                     </div>
                     <br />
                     <label>Number of columns: <span id="col_count"></span></label><br /><br />
                     <label>Json Data</label>
-                    <textarea class="form-control" id="converted" style="min-height:300px"></textarea>
+                    <textarea class="form-control" id="converted" style="min-height:100px"></textarea>
                 </div>
                </div>
             
@@ -52,13 +52,18 @@
                  };
                 reader.readAsText(input.files[0]);
             });
+            $('input[type=checkbox]').on('change', function() {
+                 parseCSVtoJSON();
+            })
 
             $("#file_content").on("input", function (event) {
                 parseCSVtoJSON();
             });
             var parseCSVtoJSON = function () {
                 var converted = document.getElementById('converted');
-                var json_array = Papa.parse($('#file_content').val(), { dynamicTyping: true, header:true });
+                var is_first_line_header = document.getElementById('first_line_header_check').checked;
+             
+                var json_array = Papa.parse($('#file_content').val(), { dynamicTyping: true, header: is_first_line_header });
                 $('#col_count').html(json_array.data[0].length);
                 converted.value = JSON.stringify(json_array);
             }
