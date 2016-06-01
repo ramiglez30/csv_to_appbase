@@ -28,9 +28,7 @@
                         <b> <input id="first_line_header_check" type="checkbox" /> <span>Is first row column headings?</span></b>
                     </div>
                     <br />
-                    <label>Number of columns: <span id="col_count"></span></label><br /><br />
-                    <label>Json Data</label>
-                    <textarea class="form-control" id="converted" style="min-height:100px"></textarea>
+               
                 </div>
 
 
@@ -71,6 +69,17 @@
     <script src="js/papaparse.min.js"></script>
     <script>
         $(document).ready(function() {
+            $.appBaseService.getForms(function(result) {
+                
+                var keys = Object.keys(result) ;
+                    keys.forEach(key => {
+                                var drop_forms = document.getElementById('form_names');
+                                var option = document.createElement('option');
+                                option.text = key;
+                                drop_forms.add(option);
+                            });
+               });
+            
             $('#csv_file_input').bind('change', function(event) {
                 var input = event.target;
 
@@ -91,20 +100,38 @@
                 parseCSVtoJSON();
             });
             var parseCSVtoJSON = function() {
-                var converted = document.getElementById('converted');
-                var is_first_line_header = document.getElementById('first_line_header_check').checked;
-
                 var json_array = Papa.parse($('#file_content').val(), {
                     dynamicTyping: true,
                     header: false
                 });
-                $('#col_count').html(json_array.data[0].length);
-                converted.value = JSON.stringify(json_array);
+               seedSourceColumns(json_array.data[0], json_array.data[1]);
             }
-
-            /*var Seed_Mapping = function(forms, form_name {
-                
-            }*/
+            var seedSourceColumns = function(row0, row1){
+               
+                    var table = document.getElementById('table_mapping');
+                    while (table.rows.length > 1){
+                        table.deleteRow(table.rows.length - 1);
+                    }
+                    for ( i=0; i < row0.length; i++) {
+                        var row = table.insertRow(table.rows.length);
+                        var columnIndex = row.insertCell(0);
+                        columnIndex.innerHTML = i.toString();
+                        var columnName = row.insertCell(1);
+                        var is_first_line_header = document.getElementById('first_line_header_check').checked
+                        if(is_first_line_header){
+                            columnName.innerHTML = row0[i];
+                        }else{
+                            columnName.innerHTML = 'Column'+i.toString();
+                        }
+                         //columnName.innerHTML = 'Column'+i.toString();
+                        var columnData = row.insertCell(2);
+                        columnData.innerHTML = row1[i];
+                        var columnMapping = row.insertCell(3);
+                        columnMapping.Id = 'cell_'+i.toString();
+                    }
+            
+            }
+             
         });
     </script>
     <script src="js/appBaseService.js"></script>
