@@ -1,4 +1,4 @@
-(function initServiceTest() {
+function initServiceTest() {
     $.appBaseService.initialize({
         requestForm: true,
         requestFormCallback: function(array) {
@@ -7,41 +7,55 @@
             }
         }
     })
-});
+};
 
-(function storeDataTest() {
+function storeDataTest() {
     var maping = {
-        formName: 'SEX',
+        formName: 'T_TEST',
         isFirstColumnHeading: false,
         dataMapping: [{
-            fileColumn: {
-                number: 1,
-                isIgnored: false
-            },
-            formColumn: {
-                name: 'SEX',
-                type: 'TEXT',
-                order: 1
-            }
-        }, {
             fileColumn: {
                 number: 0,
                 isIgnored: false
             },
             formColumn: {
-                name: 'NUMBER',
-                type: 'NUMBER',
+                name: 'field1',
+                type: 'TEXT',
                 order: 0
+            }
+        }, {
+            fileColumn: {
+                number: 1,
+                isIgnored: false
+            },
+            formColumn: {
+                name: 'field2',
+                type: 'NUMBER',
+                order: 1
+            }
+        }, {
+            fileColumn: {
+                number: 2,
+                isIgnored: false
+            },
+            formColumn: {
+                name: 'field3',
+                type: 'BOOLEAN',
+                order: 2
             }
         }]
     }
     var data = [
-        [4, "F"],
-        [1, "M"],
-        [3, "F"],
-        [2, "M"]
+        ["test5", 5, true],
+        ["test6", 6, false],
+        ["test7", 7, true],
+        ["test8", 8, false],
     ]
     $.appBaseService.storeFormData(maping, data, function(data) {
-
+        console.log(data.current);
     });
+};
+
+$(document).ready(function() {
+    storeDataTest();
 });
