@@ -17,10 +17,35 @@ $.extend({
 
         };
 
+        self.storeMappings = function(mappingArray, callback) {
+            mappingObj = {
+                    sourceName: '',
+                    fileType: '',
+                    formName: '',
+                    isFirstColumnHeading: false,
+                    mappingProperties: [{
+                        fileColumn: {
+                            number: -1,
+                            isIgnored: false
+                        },
+                        formColumn: {
+                            name: '',
+                            type: '',
+                            order: -1
+                        }
+                    }]
+                }
+                /*************BEGIN FUNCTION**************/
+
+                
+        }
+
         /* Este metodo permite hacer el store del maping siguiendo el esquema de ejemplo. No esta totalmente funcional pues hay 
         * todavia un bug que no pude resolver en el store con el appBase
         *ejemplo de objeto de maping
         maping = {
+                 sourceName: '',
+                 fileType: '',
                  formName: '',
                  isFirstColumnHeading: false,
                  dataMapping: [{
