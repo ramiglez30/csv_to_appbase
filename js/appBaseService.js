@@ -17,7 +17,7 @@ $.extend({
 
         };
 
-        self.storeMappings = function(mappingArray, callback) {
+        self.saveMappings = function(mappingArray, callback) {
             mappingObj = {
                     sourceName: '',
                     fileType: '',
@@ -25,7 +25,9 @@ $.extend({
                     isFirstColumnHeading: false,
                     mappingProperties: [{
                         fileColumn: {
-                            number: -1,
+                            colStart: -1,
+                            colEnd: -1,
+                            colIndex: -1,
                             isIgnored: false
                         },
                         formColumn: {
@@ -37,7 +39,7 @@ $.extend({
                 }
                 /*************BEGIN FUNCTION**************/
 
-                
+
         }
 
         /* Este metodo permite hacer el store del maping siguiendo el esquema de ejemplo. No esta totalmente funcional pues hay 
