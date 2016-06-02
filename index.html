@@ -67,19 +67,10 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/csv_loader.js"></script>
     <script src="js/papaparse.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $.appBaseService.getForms(function(result) {
-                
-                var keys = Object.keys(result) ;
-                    keys.forEach(key => {
-                                var drop_forms = document.getElementById('form_names');
-                                var option = document.createElement('option');
-                                option.text = key;
-                                drop_forms.add(option);
-                            });
-               });
-            
+    <script src="js/appBaseService.js"></script>
+     <script>
+        $(document).ready(function(){
+              //carga fichero y contenido en el textarea
             $('#csv_file_input').bind('change', function(event) {
                 var input = event.target;
 
@@ -88,26 +79,59 @@
                     var text = reader.result.split(' ').filter(n => n).join(' ');
                     var content = document.getElementById('file_content');
                     content.value = text;
-                    parseCSVtoJSON();
-                };
+                }
                 reader.readAsText(input.files[0]);
             });
+            //busca los datos desde el appbase
+            $.appBaseService.getForms(function(result) {
+                var keys = Object.keys(result) ;
+                    keys.forEach(key => {
+                                var drop_forms = document.getElementById('form_names');
+                                var option = document.createElement('option');
+                                option.text = key;
+                                drop_forms.add(option);
+                            });
+               });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            //datos parseados a JSON
+            var json_array = null;
+                        
+            //event handler para cuando el usuario marca la primera fila como cabecera
             $('input[type=checkbox]').on('change', function() {
                 parseCSVtoJSON();
-            })
+            });
+            
+            //event handler para el select form
+            $('select#form_names').on('change',function() {
+                 var formObject = null; 
+                 $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
+                 seedSourceColumns(formObject.properties);
+             } );
 
+            //event handler para cuando el usuario edita el texto
             $("#file_content").on("input", function(event) {
                 parseCSVtoJSON();
             });
+            
+            //function parser del texto CSV a un objeto JSON
             var parseCSVtoJSON = function() {
-                var json_array = Papa.parse($('#file_content').val(), {
+                json_array = Papa.parse($('#file_content').val(), {
                     dynamicTyping: true,
                     header: false
                 });
-               seedSourceColumns(json_array.data[0], json_array.data[1]);
-            }
-            var seedSourceColumns = function(row0, row1){
-               
+           };
+                     
+           //llena la tabla del mapping
+            var seedSourceColumns = function(targetColumns){
+                    if(json_array == null){
+                        parseCSVtoJSON();
+                    }
+                    var row0 = json_array.data[0];
+                    var row1 = json_array.data[1];
+                    
                     var table = document.getElementById('table_mapping');
                     while (table.rows.length > 1){
                         table.deleteRow(table.rows.length - 1);
@@ -123,19 +147,34 @@
                         }else{
                             columnName.innerHTML = 'Column'+i.toString();
                         }
-                         //columnName.innerHTML = 'Column'+i.toString();
+                       
                         var columnData = row.insertCell(2);
                         columnData.innerHTML = row1[i];
                         var columnMapping = row.insertCell(3);
-                        columnMapping.Id = 'cell_'+i.toString();
-                    }
+                        
+                        var select = document.createElement('select');
+                        select.setAttribute('class', 'form-control');
+                        select.setAttribute('id', 'select_'+i.toString());
+                        //crear option select
+                                              
+                        for (j = 0; j < targetColumns.length; j++)
+                        {
+                            var prop = targetColumns[j];
+                            var option = document.createElement('option');
+                            option.text = prop.name;
+                            select.appendChild(option);
+                         }
+                         
+                       columnMapping.appendChild(select);
             
-            }
-             
+                     }
+            };
         });
     </script>
+    
+   
     <!--<script src="js/mocks.js"></script>-->
-    <script src="js/appBaseService.js"></script>
+    
     <!--<script src="js/test/appBaseServiceTest.js"></script>-->
 </body>
 
