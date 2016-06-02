@@ -17,27 +17,41 @@ $.extend({
 
         };
 
-        self.saveMappings = function(mappingArray, callback) {
-            mappingObj = {
-                    sourceName: '',
-                    fileType: '',
-                    formName: '',
-                    isFirstColumnHeading: false,
-                    mappingProperties: [{
-                        fileColumn: {
-                            colStart: -1,
-                            colEnd: -1,
-                            colIndex: -1,
-                            isIgnored: false
-                        },
-                        formColumn: {
-                            name: '',
-                            type: '',
-                            order: -1
+        self.saveMapping = function(mappingObj, callback) {
+            /* mappingObj = {
+                 sourceName: '',
+                 fileType: '',
+                 formName: '',
+                 isFirstColumnHeading: false,
+                 mappingProperties: [{
+                     fileColumn: {
+                         colStart: -1,
+                         colEnd: -1,
+                         colIndex: -1,
+                         isIgnored: false
+                     },
+                     formColumn: {
+                         name: '',
+                         type: '',
+                         order: -1,
+                         isReference: false,
+                         reference:{formName:'', colName: '', data:''}
+                     }
+                 }]
+             }*/
+            /*************BEGIN FUNCTION**************/
+            self.getFormData('MAPPING', function(resultSet) {
+
+                if (!existDataInForm('SOURCE_NAME', mappingObj.sourceName, resultSet)) {
+                    var mappingFormMap = getMappingFormMap();
+                    var mappingFormRow = getMappingFormRow(mappingObj);
+                    self.storeFormData(mappingFormMap, mappingFormRow, null, function() {
+                        for (var index in mappingObj.mappingProperties) {
+
                         }
-                    }]
+                    });
                 }
-                /*************BEGIN FUNCTION**************/
+            });
 
 
         }
@@ -75,7 +89,8 @@ $.extend({
                   total: total de elementos a almacenar
                     }
         */
-        self.storeFormData = function(mappingObj, dataArray, callback) {
+
+        self.storeFormData = function(mappingObj, dataArray, callback, endCallback) {
 
             var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
             var dataMapping = mappingObj.dataMapping;
@@ -113,6 +128,9 @@ $.extend({
                                 current: i,
                                 total: dataLength
                             });
+                        }
+                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                            endCallback();
                         }
                     },
                     error: function() {
@@ -168,23 +186,29 @@ $.extend({
 
             var headers = result.resultSet.headers;
             var rows = result.resultSet.rows;
-            for (var form in rows) {
-                var formName = rows[form][0];
+            for (var index in rows) {
+                var formName = rows[index][0];
                 var formObj = formsArray[formName];
                 if (formObj == undefined) {
                     formsArray[formName] = {
                         formName: formName,
                         properties: [{
-                            name: rows[form][2],
-                            type: rows[form][3],
-                            order: rows[form][4]
+                            name: rows[index][2],
+                            type: rows[index][3],
+                            order: rows[index][4],
+                            isReference: rows[index][5],
+                            formReferenced: rows[index][6],
+                            dataReferenced: rows[index][7]
                         }]
                     }
                 } else {
                     formObj.properties.push({
-                        name: rows[form][2],
-                        type: rows[form][3],
-                        order: rows[form][4]
+                        name: rows[index][2],
+                        type: rows[index][3],
+                        order: rows[index][4],
+                        isReference: rows[index][5],
+                        formReferenced: rows[index][6],
+                        dataReferenced: rows[index][7]
                     });
                 }
 
@@ -211,11 +235,228 @@ $.extend({
             }
         }
 
-        var getFormCreateCommandData = function(storeDataArray) {
+        self.getFormData = function(formName, callback) {
+
+            $.ajax({
+                type: 'GET',
+                url: 'http://dev.synchronit.com/appbase-webconsole/json',
+                cache: false,
+                dataType: 'json',
+                async: false,
+                data: {
+                    command: 'Get ' + formName
+                },
+                success: function(result) {
+                    if (result.code == 100) {
+                        var headers = result.resultSet.headers;
+                        var rows = result.resultSet.rows;
+                        if (callback != undefined && callback != null) {
+                            callback(result.resultSet)
+                        }
+                    }
+                },
+                error: function() {
+
+                }
+            });
+
 
         }
 
+        var existDataInForm = function(columnName, columnData, formResult) {
+            var formHeaders = formResult.headers;
+            var formRows = formResult.rows;
+            var columnIndex = findColumnIndexInHeaders(formHeaders, columnName);
 
+            if (columnIndex >= 0) {
+                var index = 0;
+                var found = false;
+                while (index < formRows.length && !found) {
+                    if (formRows[index][columnIndex] == columnData) {
+                        found == true;
+                        break;
+                    }
+                    index++;
+                }
+
+                return found;
+            }
+            return false;
+        };
+
+        var findColumnIndexInHeaders = function(formHeaders, columnName) {
+            var index = 0;
+            var found = false;
+            while (index < formHeaders.length && !found) {
+                if (formHeaders[index].label == columnName) {
+                    found = true;
+                    break;
+                }
+                index++;
+            }
+
+            return found == true ? index : -1;
+        }
+
+
+        /**** Util for Mapping ****/
+        var getMappingFormRow = function(mappingObj) {
+            return [
+                [mappingObj.sourceName, mappingObj.fileType, mappingObj.formName, mappingObj.isFirstColumnHeading]
+            ];
+        }
+
+        var getMappingFormMap = function() {
+            return {
+                formName: 'MAPPING',
+                isFirstColumnHeading: false,
+                dataMapping: [{
+                    fileColumn: {
+                        number: 0,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'SOURCE_NAME',
+                        type: 'TEXT',
+                        order: 0
+                    }
+                }, {
+                    fileColumn: {
+                        number: 1,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FILE_TYPE',
+                        type: 'TEXT',
+                        order: 1
+                    }
+                }, {
+                    fileColumn: {
+                        number: 2,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FORM_NAME',
+                        type: 'TEXT',
+                        order: 2
+                    }
+                }, {
+                    fileColumn: {
+                        number: 3,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'IS_FIRST_COL_HEAD',
+                        type: 'BOOLEAN',
+                        order: 3
+                    }
+                }]
+            }
+        }
+
+        var getMappingPropertiesFormMap = function(fileType, propertyObj) {
+            return {
+                formName: 'MAPPING_PROPERTIES',
+                isFirstColumnHeading: false,
+                dataMapping: [{
+                    fileColumn: {
+                        number: propertyObj.colStart,
+                        isIgnored: fileType == 'csv' ? true : false
+                    },
+                    formColumn: {
+                        name: 'FILE_COL_START',
+                        type: 'NUMBER',
+                        order: 0,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.colEnd,
+                        isIgnored: fileType == 'csv' ? true : false
+                    },
+                    formColumn: {
+                        name: 'FILE_COL_END',
+                        type: 'NUMBER',
+                        order: 0,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.colIndex,
+                        isIgnored: fileType == 'csv' ? true : false
+                    },
+                    formColumn: {
+                        name: 'FILE_COL_INDEX',
+                        type: 'NUMBER',
+                        order: 0,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.isIgnored,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FILE_COL_IGNORED',
+                        type: 'BOOLEAN',
+                        order: 3,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.isIgnored,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FORM_COL_NAME',
+                        type: 'TEXT',
+                        order: 3,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.isIgnored,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FORM_COL_TYPE',
+                        type: 'TEXT',
+                        order: 3,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.isIgnored,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FORM_COL_ORDER',
+                        type: 'NUMBER',
+                        order: 3,
+                        isReference: false,
+                        dataReference: ''
+                    }
+                }, {
+                    fileColumn: {
+                        number: propertyObj.isIgnored,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'SOURCE_NAME',
+                        type: 'NUMBER',
+                        order: 3,
+                        isReference: true,
+                        dataReference: ''
+                    }
+                }]
+            }
+        }
     }
 });
 
