@@ -35,20 +35,32 @@ $.extend({
                          type: '',
                          order: -1,
                          isReference: false,
-                         reference:{formName:'', colName: '', data:''}
+                         reference:{
+                             formName:'',
+                             colums: []
+                             }
                      }
                  }]
              }*/
             /*************BEGIN FUNCTION**************/
             self.getFormData('MAPPING', function(resultSet) {
 
-                if (!existDataInForm('SOURCE_NAME', mappingObj.sourceName, resultSet)) {
+                if (!self.existDataInForm('SOURCE_NAME', mappingObj.sourceName, resultSet)) {
                     var mappingFormMap = getMappingFormMap();
                     var mappingFormRow = getMappingFormRow(mappingObj);
                     self.storeFormData(mappingFormMap, mappingFormRow, null, function() {
-                        for (var index in mappingObj.mappingProperties) {
 
+                        var mappingPropertiesMap = getMappingPropertiesFormMap();
+                        var mappingPropertiesArray = Array();
+                        for (var index in mappingObj.mappingProperties) {
+                            var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.mappingProperties[index])
+                            mappingPropertiesArray.push(mappingPropertiesRow);
                         }
+
+                        self.storeFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
+
+                        })
+
                     });
                 }
             });
@@ -57,7 +69,7 @@ $.extend({
         }
 
         /* Este metodo permite hacer el store del maping siguiendo el esquema de ejemplo. No esta totalmente funcional pues hay 
-        * todavia un bug que no pude resolver en el store con el appBase
+        * 
         *ejemplo de objeto de maping
         maping = {
                  sourceName: '',
@@ -72,7 +84,12 @@ $.extend({
                      formColumn: {
                          name: '',
                          type: '',
-                         order: -1
+                         order: -1,
+                         isReference: false,
+                         reference:{
+                             formName:'',
+                              colums:[]
+                            }
                      }
                  }]
              }
@@ -103,7 +120,21 @@ $.extend({
                 for (var item in dataMapping) {
                     var mappingItem = dataMapping[item];
                     if (!mappingItem.fileColumn.isIgnored) {
+
                         var dataColumn = dataRow[mappingItem.fileColumn.number];
+
+                        if (mappingItem.formColumn.isReference) {
+                            var value = '(';
+                            if (Array.isArray(dataColumn)) {
+                                for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
+                                    value += indexRef > 0 ? ',' : '';
+                                    value += '"' + dataColumn[indexRef] + '"';
+                                }
+                            }
+                            value += dataColumn + ')';
+                            storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                        }
+
                         storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
                     } else {
                         storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, ''));
@@ -225,7 +256,7 @@ $.extend({
                 case 'TEXT':
                     return '"' + value + '"';
                 case 'NUMBER':
-                    return value;
+                    return value == null ? 10000 : value;
                 case 'BOOLEAN':
                     return value;
                 case 'IMAGE':
@@ -263,7 +294,7 @@ $.extend({
 
         }
 
-        var existDataInForm = function(columnName, columnData, formResult) {
+        self.existDataInForm = function(columnName, columnData, formResult) {
             var formHeaders = formResult.headers;
             var formRows = formResult.rows;
             var columnIndex = findColumnIndexInHeaders(formHeaders, columnName);
@@ -273,7 +304,7 @@ $.extend({
                 var found = false;
                 while (index < formRows.length && !found) {
                     if (formRows[index][columnIndex] == columnData) {
-                        found == true;
+                        found = true;
                         break;
                     }
                     index++;
@@ -354,49 +385,49 @@ $.extend({
             }
         }
 
-        var getMappingPropertiesFormMap = function(fileType, propertyObj) {
+        var getMappingPropertiesFormMap = function() {
             return {
                 formName: 'MAPPING_PROPERTIES',
                 isFirstColumnHeading: false,
                 dataMapping: [{
                     fileColumn: {
-                        number: propertyObj.colStart,
-                        isIgnored: fileType == 'csv' ? true : false
+                        number: 0,
+                        isIgnored: false
                     },
                     formColumn: {
                         name: 'FILE_COL_START',
                         type: 'NUMBER',
                         order: 0,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.colEnd,
-                        isIgnored: fileType == 'csv' ? true : false
+                        number: 1,
+                        isIgnored: false
                     },
                     formColumn: {
                         name: 'FILE_COL_END',
                         type: 'NUMBER',
-                        order: 0,
+                        order: 1,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.colIndex,
-                        isIgnored: fileType == 'csv' ? true : false
+                        number: 2,
+                        isIgnored: false
                     },
                     formColumn: {
                         name: 'FILE_COL_INDEX',
                         type: 'NUMBER',
-                        order: 0,
+                        order: 2,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.isIgnored,
+                        number: 3,
                         isIgnored: false
                     },
                     formColumn: {
@@ -404,58 +435,76 @@ $.extend({
                         type: 'BOOLEAN',
                         order: 3,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.isIgnored,
+                        number: 4,
                         isIgnored: false
                     },
                     formColumn: {
                         name: 'FORM_COL_NAME',
                         type: 'TEXT',
-                        order: 3,
+                        order: 4,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.isIgnored,
+                        number: 5,
                         isIgnored: false
                     },
                     formColumn: {
                         name: 'FORM_COL_TYPE',
                         type: 'TEXT',
-                        order: 3,
+                        order: 5,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.isIgnored,
+                        number: 6,
                         isIgnored: false
                     },
                     formColumn: {
                         name: 'FORM_COL_ORDER',
                         type: 'NUMBER',
-                        order: 3,
+                        order: 6,
                         isReference: false,
-                        dataReference: ''
+                        dataReference: null
                     }
                 }, {
                     fileColumn: {
-                        number: propertyObj.isIgnored,
+                        number: 7,
                         isIgnored: false
                     },
                     formColumn: {
                         name: 'SOURCE_NAME',
                         type: 'NUMBER',
-                        order: 3,
+                        order: 7,
                         isReference: true,
-                        dataReference: ''
+                        dataReference: {
+                            formName: 'MAPPING',
+                            colName: 'SOURCE_NAME'
+                        }
                     }
                 }]
             }
+        }
+
+        var getMappingPropertiesRow = function(propertyObj) {
+
+            return [
+                propertyObj.fileColumn.colStart,
+                propertyObj.fileColumn.colEnd,
+                propertyObj.fileColumn.colIndex,
+                propertyObj.fileColumn.isIgnored,
+                propertyObj.formColumn.name,
+                propertyObj.formColumn.type,
+                propertyObj.formColumn.order,
+                propertyObj.formColumn.isReference,
+                propertyObj.formColumn.reference
+            ];
         }
     }
 });

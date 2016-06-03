@@ -56,6 +56,77 @@ function storeDataTest() {
     });
 };
 
+function saveMappingTest() {
+    var mappingObj = {
+        sourceName: 'credit-suize1',
+        fileType: 'csv',
+        formName: 'T_TEST',
+        isFirstColumnHeading: false,
+        mappingProperties: [{
+            fileColumn: {
+                colStart: null,
+                colEnd: null,
+                colIndex: 0,
+                isIgnored: false
+            },
+            formColumn: {
+                name: 'field1',
+                type: 'TEXT',
+                order: 0,
+                isReference: false,
+                reference: null
+            }
+        }, {
+            fileColumn: {
+                colStart: null,
+                colEnd: null,
+                colIndex: 1,
+                isIgnored: false
+            },
+            formColumn: {
+                name: 'field2',
+                type: 'NUMBER',
+                order: 1,
+                isReference: false,
+                reference: null
+            }
+        }, {
+            fileColumn: {
+                colStart: null,
+                colEnd: null,
+                colIndex: 2,
+                isIgnored: false
+            },
+            formColumn: {
+                name: 'field3',
+                type: 'BOOLEAN',
+                order: 2,
+                isReference: false,
+                reference: null
+            }
+        }]
+    }
+
+    $.appBaseService.saveMapping(mappingObj);
+}
+
+function getFormDataTest() {
+    $.appBaseService.getFormData('MAPPING', function(resultSet) {
+
+        console.log(resultSet);
+    })
+}
+
+function existDataInFormTest() {
+    $.appBaseService.getFormData('MAPPING', function(resultSet) {
+        console.log($.appBaseService.existDataInForm('SOURCE_NAME', 'credit-suize', resultSet));
+
+    })
+}
+
 $(document).ready(function() {
-    storeDataTest();
+    //storeDataTest();
+    saveMappingTest();
+    //getFormDataTest();
+    //existDataInFormTest();
 });
