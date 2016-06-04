@@ -124,20 +124,19 @@ $.extend({
                         var dataColumn = dataRow[mappingItem.fileColumn.number];
 
                         if (mappingItem.formColumn.isReference) {
-                            var value = '(';
-                            if (Array.isArray(dataColumn)) {
-                                for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
-                                    value += indexRef > 0 ? ',' : '';
-                                    value += '"' + dataColumn[indexRef] + '"';
-                                }
-                            }
-                            value += dataColumn + ')';
+                            var value = getValueForReferenceColumn(dataColumn);
                             storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                        } else {
+                            storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
                         }
 
-                        storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
                     } else {
-                        storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, ''));
+                        if (mappingItem.formColumn.isReference) {
+                            var value = getValueForReferenceColumn('');
+                            storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                        } else {
+                            storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, ''));
+                        }
                     }
                 }
 
@@ -171,6 +170,21 @@ $.extend({
 
             }
         };
+
+        var getValueForReferenceColumn = function(dataColumn) {
+            var value = '(';
+            if (Array.isArray(dataColumn)) {
+                for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
+                    value += indexRef > 0 ? ',' : '';
+                    value += '"' + dataColumn[indexRef] + '"';
+                }
+                value += ')';
+            } else {
+                value += dataColumn + ')';
+            }
+
+            return value;
+        }
 
         self.getFormObj = function(formName, getFormCallback) {
             if (formsArray == null) {
