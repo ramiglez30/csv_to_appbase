@@ -24,31 +24,35 @@ $.extend({
 
         };
 
+        /** Metodo para guardar una definicion de maping la estructura del objeto de maping es la del ejemplo
+         * Ejemplo
+         * mappingObj = {
+         *        sourceName: '',
+         *        fileType: '',
+         *        formName: '',
+         *        isFirstColumnHeading: false,
+         *        mappingProperties: [{
+         *            fileColumn: {
+         *                colStart: -1,
+         *                colEnd: -1,
+         *                colIndex: -1,
+         *                isIgnored: false
+         *            },
+         *            formColumn: {
+         *                name: '',
+         *                type: '',
+         *                order: -1,
+         *                isReference: false,
+         *                reference:{
+         *                    formName:'',
+         *                    colums: []
+         *                    }
+         *            }
+         *        }]
+         *    }
+         */
         self.saveMapping = function(mappingObj, callback) {
-            /* mappingObj = {
-                 sourceName: '',
-                 fileType: '',
-                 formName: '',
-                 isFirstColumnHeading: false,
-                 mappingProperties: [{
-                     fileColumn: {
-                         colStart: -1,
-                         colEnd: -1,
-                         colIndex: -1,
-                         isIgnored: false
-                     },
-                     formColumn: {
-                         name: '',
-                         type: '',
-                         order: -1,
-                         isReference: false,
-                         reference:{
-                             formName:'',
-                             colums: []
-                             }
-                     }
-                 }]
-             }*/
+
             /*************BEGIN FUNCTION**************/
             self.getFormData('MAPPING', function(resultSet) {
 
@@ -75,45 +79,45 @@ $.extend({
 
         }
 
-        /* Este metodo permite hacer el store del maping siguiendo el esquema de ejemplo. No esta totalmente funcional pues hay 
-        * 
-        *ejemplo de objeto de maping
-        maping = {
-                 sourceName: '',
-                 fileType: '',
-                 formName: '',
-                 isFirstColumnHeading: false,
-                 dataMapping: [{
-                     fileColumn: {
-                         number: -1,
-                         isIgnored: false
-                     },
-                     formColumn: {
-                         name: '',
-                         type: '',
-                         order: -1,
-                         isReference: false,
-                         reference:{
-                             formName:'',
-                              colums:[]
-                            }
-                     }
-                 }]
-             }
-        *--Ejemplo del dataArray 
-        *data = [
+        /** Este metodo permite hacer el store del maping siguiendo el esquema de ejemplo. No esta totalmente funcional pues hay 
+         * 
+         * 
+         * ejemplo de objeto de maping
+         *   maping = {
+         *        sourceName: '',
+         *        fileType: '',
+         *        formName: '',
+         *        isFirstColumnHeading: false,
+         *        dataMapping: [{
+         *            fileColumn: {
+         *                number: -1,
+         *                isIgnored: false
+         *            },
+         *            formColumn: {
+         *                name: '',
+         *                type: '',
+         *                order: -1,
+         *                isReference: false,
+         *                reference:{
+         *                    formName:'',
+         *                     colums:[]
+         *                   }
+         *            }
+         *        }]
+         *    }
+         * --Ejemplo del dataArray 
+         *  data = [
                  ["M"],
                  ["F"],
                  ["F"],
                  ["F"]
              ]
-        * ejemplo del callback
-        object = {
+         *  ejemplo del callback
+         *  object = {
                   current: item actual que se inserto, esto pensando en poder poner una barra de progreso,
                   total: total de elementos a almacenar
                     }
         */
-
         self.saveFormData = function(mappingObj, dataArray, callback, endCallback) {
 
             var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
@@ -403,14 +407,15 @@ $.extend({
             return found == true ? index : -1;
         }
 
-
         /**** Util for Mapping ****/
+        /** Este metodo construye la estructura de Rows para el formulario de Mapping */
         var getMappingFormRow = function(mappingObj) {
             return [
                 [mappingObj.sourceName, mappingObj.fileType, mappingObj.formName, mappingObj.isFirstColumnHeading]
             ];
         }
 
+        /** Este metodo construye la estructura del objeto de mapping para el formulario de Mapping */
         var getMappingFormMap = function() {
             return {
                 formName: 'MAPPING',
@@ -459,6 +464,7 @@ $.extend({
             }
         }
 
+        /** Este metodo construye la estructura del objeto de mapping para el formulario de MappingProperties */
         var getMappingPropertiesFormMap = function() {
             return {
                 formName: 'MAPPING_PROPERTIES',
@@ -566,6 +572,7 @@ $.extend({
             }
         }
 
+        /** Este metodo construye la estructura de Rows para el formulario de MappingProperties */
         var getMappingPropertiesRow = function(propertyObj) {
 
             return [
