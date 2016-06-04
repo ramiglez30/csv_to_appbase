@@ -142,3 +142,70 @@ var formsMock = function() {
         "debugInfo": []
     }
 }
+
+var formDataMock = function(formName) {
+    switch (formName) {
+        case 'T_TEST':
+            return {
+                "code": 100,
+                "message": "3 rows found.",
+                "resultSet": {
+                    "headers": [{
+                        "label": "field1",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "field2",
+                        "type": "NUMBER",
+                        "referencedData": []
+                    }, {
+                        "label": "field3",
+                        "type": "BOOLEAN",
+                        "referencedData": []
+                    }],
+
+                    "rows": [
+                        ["credit-suize", "0", "false"],
+                        ["credit-suize1", "0", "false"],
+                        ["credit-suize2", "0", "false"],
+                    ]
+                },
+                "debugInfo": []
+            }
+        case 'MAPPING':
+            return {
+                "code": 100,
+                "message": "3 rows found.",
+                "resultSet": {
+                    "headers": [{
+                        "label": "SOURCE_NAME",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "FILE_TYPE",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "FORM_NAME",
+                        "type": "TEXT",
+                        "referencedData": []
+                    }, {
+                        "label": "IS_FIRST_COL_HEAD",
+                        "type": "BOOLEAN",
+                        "referencedData": []
+                    }],
+
+                    "rows": [
+                        ["credit-suize", "csv", "MAPPING", false],
+                        ["credit-suize2", "csv", "MAPPING", false]
+                    ]
+                },
+                "debugInfo": []
+            }
+
+        default:
+            {
+                return '';
+            }
+    }
+}

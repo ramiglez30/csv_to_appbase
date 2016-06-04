@@ -2,15 +2,22 @@ $.extend({
     appBaseService: new function() {
         var self = this;
         var formsArray = null;
+        self.options = null;
 
         self.initialize = function(options) {
-            attachBehavior();
-            if (options != undefined) {
-                if (options.requestForm) {
-                    requestForms(options.requestFormCallback);
+            if (options == null || options == undefined) {
+                options = {
+                    requestForm: false,
+                    useMock: false
                 }
             }
+            self.options = options
 
+            if (self.options.requestForm) {
+                requestForms(options.requestFormCallback);
+            }
+
+            attachBehavior();
         };
 
         var attachBehavior = function() {
@@ -48,7 +55,7 @@ $.extend({
                 if (!self.existDataInForm('SOURCE_NAME', mappingObj.sourceName, resultSet)) {
                     var mappingFormMap = getMappingFormMap();
                     var mappingFormRow = getMappingFormRow(mappingObj);
-                    self.storeFormData(mappingFormMap, mappingFormRow, null, function() {
+                    self.saveFormData(mappingFormMap, mappingFormRow, null, function() {
 
                         var mappingPropertiesMap = getMappingPropertiesFormMap();
                         var mappingPropertiesArray = Array();
@@ -57,7 +64,7 @@ $.extend({
                             mappingPropertiesArray.push(mappingPropertiesRow);
                         }
 
-                        self.storeFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
+                        self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
 
                         })
 
@@ -107,7 +114,7 @@ $.extend({
                     }
         */
 
-        self.storeFormData = function(mappingObj, dataArray, callback, endCallback) {
+        self.saveFormData = function(mappingObj, dataArray, callback, endCallback) {
 
             var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
             var dataMapping = mappingObj.dataMapping;
@@ -141,36 +148,48 @@ $.extend({
                 }
 
                 var formQuery = storeDataArray.join(',');
-
-                $.ajax({
-                    type: 'GET',
-                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                    cache: false,
-                    dataType: 'json',
-                    //async: false,
-                    data: {
-                        command: 'Create New ' + mappingObj.formName + '(' + formQuery + ')'
-                    },
-                    success: function(result) {
-
-                        if (callback != undefined && callback != null) {
-                            callback({
-                                current: i,
-                                total: dataLength
-                            });
-                        }
-                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
-                            endCallback();
-                        }
-                    },
-                    error: function() {
-
+                if (self.options.useMock) {
+                    if (callback != undefined && callback != null) {
+                        callback({
+                            current: i,
+                            total: dataLength
+                        });
                     }
-                });
+                    if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                        endCallback();
+                    }
+                } else {
+                    $.ajax({
+                        type: 'GET',
+                        url: 'http://dev.synchronit.com/appbase-webconsole/json',
+                        cache: false,
+                        dataType: 'json',
+                        //async: false,
+                        data: {
+                            command: 'Create New ' + mappingObj.formName + '(' + formQuery + ')'
+                        },
+                        success: function(result) {
 
+                            if (callback != undefined && callback != null) {
+                                callback({
+                                    current: i,
+                                    total: dataLength
+                                });
+                            }
+                            if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                                endCallback();
+                            }
+                        },
+                        error: function() {
+
+                        }
+                    });
+
+                }
             }
         };
 
+        /**Esta funcion permite construir la estructura para los campos que son referencia*/
         var getValueForReferenceColumn = function(dataColumn) {
             var value = '(';
             if (Array.isArray(dataColumn)) {
@@ -186,6 +205,9 @@ $.extend({
             return value;
         }
 
+        /**Esta funcion busca en el appBase si existe el formulario,
+         * y pasa al callback un objeto con la definicion del formulario
+         * */
         self.getFormObj = function(formName, getFormCallback) {
             if (formsArray == null) {
                 requestForms(function(formsArray) {
@@ -196,6 +218,9 @@ $.extend({
             }
         };
 
+        /**Esta funcion busca en el appBase todos los formularios,
+         * y pasa al callback un objeto con la definicion de los formularios
+         */
         self.getForms = function(getFormsCallback) {
 
             if (formsArray == null) {
@@ -205,25 +230,35 @@ $.extend({
             }
         }
 
+        /**Este metodo ejecuta la consulta al appBase y devuelve en el callback
+         * un arreglo con las definiciones de los formularios 
+         */
         var requestForms = function(callback) {
-            formsArray = Array();
-            $.ajax({
-                type: 'GET',
-                url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                cache: false,
-                dataType: 'json',
-                data: {
-                    command: 'SHOW FORMS'
-                },
-                success: function(result) {
-                    parseFormRows(result, callback)
-                },
-                error: function() {
+            if (self.options.useMock) {
+                parseFormRows(formsMock(), callback)
+            } else {
+                formsArray = Array();
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
+                    cache: false,
+                    dataType: 'json',
+                    data: {
+                        command: 'SHOW FORMS'
+                    },
+                    success: function(result) {
+                        parseFormRows(result, callback)
+                    },
+                    error: function() {
 
-                }
-            });
+                    }
+                });
+            }
         };
 
+        /**Este metodo realiza el parser del arreglo de formularios, construye un objeto
+         * json y lo pasa en el callback
+         */
         var parseFormRows = function(result, callback) {
             if (result.code != 100) {
                 return;
@@ -231,6 +266,9 @@ $.extend({
 
             var headers = result.resultSet.headers;
             var rows = result.resultSet.rows;
+            if (rows.length > 0 || formsArray == null) {
+                formsArray = Array();
+            }
             for (var index in rows) {
                 var formName = rows[index][0];
                 var formObj = formsArray[formName];
@@ -264,6 +302,7 @@ $.extend({
             }
         };
 
+        /**Este metodo devuelve el formato para una propiedad a partir del tipo de dato */
         var getStoreDataFormat = function(dataType, value) {
 
             switch (dataType) {
@@ -280,35 +319,49 @@ $.extend({
             }
         }
 
+        /**Este metodo consulta el appBase y devuelve los datos de un formulario */
         self.getFormData = function(formName, callback) {
+            if (formName == undefined || formName == null) {
+                return;
+            }
 
-            $.ajax({
-                type: 'GET',
-                url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                cache: false,
-                dataType: 'json',
-                async: false,
-                data: {
-                    command: 'Get ' + formName
-                },
-                success: function(result) {
-                    if (result.code == 100) {
-                        var headers = result.resultSet.headers;
-                        var rows = result.resultSet.rows;
-                        if (callback != undefined && callback != null) {
-                            callback(result.resultSet)
-                        }
-                    }
-                },
-                error: function() {
-
+            if (self.options.useMock) {
+                if (callback != undefined && callback != null) {
+                    callback(formDataMock(formName))
                 }
-            });
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
+                    cache: false,
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        command: 'Get ' + formName
+                    },
+                    success: function(result) {
+                        if (result.code == 100) {
+                            var headers = result.resultSet.headers;
+                            var rows = result.resultSet.rows;
+                            if (callback != undefined && callback != null) {
+                                callback(result.resultSet)
+                            }
+                        }
+                    },
+                    error: function() {
 
-
+                    }
+                });
+            }
         }
 
+        /**Este metodo comprueba si en los datos de un formulario ya existe el dato especificado.
+         * requiere para su funcionamiento que se pasen los datos del formulario
+         */
         self.existDataInForm = function(columnName, columnData, formResult) {
+            if (formResult == undefined || formResult == null) {
+                return
+            }
             var formHeaders = formResult.headers;
             var formRows = formResult.rows;
             var columnIndex = findColumnIndexInHeaders(formHeaders, columnName);
@@ -329,7 +382,14 @@ $.extend({
             return false;
         };
 
+        /**Este metodo permite conocer el indice de una columna (x) de un formulario.
+         * requiere para su funcionamiento la definicion del header de un formulario
+         * */
         var findColumnIndexInHeaders = function(formHeaders, columnName) {
+            if (formHeaders == undefined || formHeaders == null) {
+                return;
+            }
+
             var index = 0;
             var found = false;
             while (index < formHeaders.length && !found) {
@@ -524,5 +584,8 @@ $.extend({
 });
 
 $(function() {
-    $.appBaseService.initialize();
+    $.appBaseService.initialize({
+        requestForm: true,
+        useMock: true
+    });
 })

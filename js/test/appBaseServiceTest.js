@@ -1,6 +1,7 @@
 function initServiceTest() {
     $.appBaseService.initialize({
         requestForm: true,
+        useMock: true,
         requestFormCallback: function(array) {
             if (array != null) {
                 console.log('success initialize');
@@ -9,7 +10,7 @@ function initServiceTest() {
     })
 };
 
-function storeDataTest() {
+function saveDataTest() {
     var maping = {
         formName: 'T_TEST',
         isFirstColumnHeading: false,
@@ -51,14 +52,14 @@ function storeDataTest() {
         ["test7", 7, true],
         ["test8", 8, false],
     ]
-    $.appBaseService.storeFormData(maping, data, function(data) {
+    $.appBaseService.saveFormData(maping, data, function(data) {
         console.log(data.current);
     });
 };
 
 function saveMappingTest() {
     var mappingObj = {
-        sourceName: 'credit-suize1',
+        sourceName: 'credit-suize3',
         fileType: 'csv',
         formName: 'T_TEST',
         isFirstColumnHeading: false,
@@ -125,7 +126,8 @@ function existDataInFormTest() {
 }
 
 $(document).ready(function() {
-    //storeDataTest();
+    initServiceTest();
+    //saveDataTest();
     saveMappingTest();
     //getFormDataTest();
     //existDataInFormTest();
