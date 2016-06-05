@@ -1,7 +1,9 @@
+
 $.extend({
     appBaseService: new function() {
         var self = this;
         var formsArray = null;
+        var useMockData = true;
 
         self.initialize = function(options) {
             attachBehavior();
@@ -134,7 +136,6 @@ $.extend({
         };
 
         self.getForms = function(getFormsCallback) {
-
             if (formsArray == null) {
                 requestForms(getFormsCallback);
             } else {
@@ -143,22 +144,29 @@ $.extend({
         }
 
         var requestForms = function(callback) {
-            formsArray = Array();
-            $.ajax({
-                type: 'GET',
-                url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                cache: false,
-                dataType: 'json',
-                data: {
-                    command: 'SHOW FORMS'
-                },
-                success: function(result) {
-                    parseFormRows(result, callback)
-                },
-                error: function() {
+           
+           if (useMockData) {
+                //solo para desarrollo offline
+                var formsMock = $.mocking.formsMock;
+                formsArray = Array();
+                parseFormRows(formsMock, callback);
+           }else {
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
+                    cache: false,
+                    dataType: 'json',
+                    data: {
+                        command: 'SHOW FORMS'
+                    },
+                    success: function(result) {
+                        parseFormRows(result, callback)
+                    },
+                    error: function() {
 
-                }
-            });
+                    }
+                });
+           }
         };
 
         var parseFormRows = function(result, callback) {
