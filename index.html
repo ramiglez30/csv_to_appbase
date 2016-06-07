@@ -43,15 +43,10 @@
                     <div class="panel-body">
                         <table id="table_mapping" class="table">
                             <thead>
-                                <tr>
-                                    <th style="width:70px">index</th>
-                                    <th>CSV Columns</th>
-                                    <th>Data Sample</th>
-                                    <th>FORM Columns</th>
-                                </tr>
+                                <tr><th>probando</th></tr>
                             </thead>
                             <tbody>
-
+                                <tr><td>probando</td></tr>
                             </tbody>
 
                         </table>
@@ -83,6 +78,7 @@
                     content.value = text;
                 }
                 reader.readAsText(input.files[0]);
+                seedTableData();
             });
             //busca los datos desde el appbase
             $.appBaseService.getForms(function(result) {
@@ -100,22 +96,24 @@
         $(document).ready(function() {
             //datos parseados a JSON
             var json_array = null;
+            var formObject = null; 
                         
             //event handler para cuando el usuario marca la primera fila como cabecera
             $('input[type=checkbox]').on('change', function() {
                 parseCSVtoJSON();
+                seedTableData();
             });
             
             //event handler para el select form
             $('select#form_names').on('change',function() {
-                 var formObject = null; 
                  $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
-                 seedSourceColumns(formObject.properties);
-             } );
+                 seedHeadingMaps();
+             });
 
             //event handler para cuando el usuario edita el texto
             $("#file_content").on("input", function(event) {
                 parseCSVtoJSON();
+                seedTableData();
             });
             
             //function parser del texto CSV a un objeto JSON
@@ -127,50 +125,75 @@
            };
                      
            //llena la tabla del mapping
-            var seedSourceColumns = function(targetColumns){
-                    if(json_array == null){
-                        parseCSVtoJSON();
+            var seedTableData = function(){
+                $("table#table_mapping tbody").children().remove();
+
+
+                if(json_array == null && $('#file_content').val() != "") {
+                    parseCSVtoJSON();
+                } 
+                //alert('pasa por 136');
+                //si no hay nada en file_content salir del metodo.
+                if($('#file_content').val() == '') { 
+                    //alert('voy a retornar')
+                    return;
+                }
+                //alert('pasa por 142');
+                var counter = 10;
+                if(rowCount() < 10) {counter = rowCount();} 
+
+                var a = 0;
+                if(document.getElementById('first_line_header_check').checked) {a = 1;}
+
+                for(i = a; i < counter; i++) {
+                    //alert('entra en el for i con columnCount =' + columnCount().toString());
+                    var rowData = $('<tr></tr>'); 
+                    for (var k = 0; k < columnCount(); k++){
+                        //alert('entra en el for k');
+                        //alert(json_array.data[i][k]);
+                        $('<td>'+json_array.data[i][k]+'</td>').appendTo(rowData);
                     }
-                    var row0 = json_array.data[0];
-                    var row1 = json_array.data[1];
-                    
-                    var table = document.getElementById('table_mapping');
-                    while (table.rows.length > 1){
-                        table.deleteRow(table.rows.length - 1);
+
+                    $("table#table_mapping tbody").append(rowData);
+                    //alert('inserta elementto 157');
+                }
+           };
+
+           var seedHeadingMaps = function() {
+                if(formObject == null){return;}
+                var columnProperties = formObject.properties; 
+                //clean datatable 
+                $("table#table_mapping thead").children().remove(); 
+                   var row = $('<tr></tr>');
+                for(var j = 0; j<columnCount(); j++){
+                    var headingCell = $('<th></th>'); 
+                    var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'}); 
+                    var ignore = $('<option>ignore</option>', {'data-value': 'ignore'});
+                    ignore.appendTo(select);
+                    for(var k = 0; k< columnProperties.length; k++){
+                        var option = $('<option>'+columnProperties[k].name+'</option>', {'data-value': columnProperties[k].name, 'data-type':columnProperties[k].type, 'data-index':k.toString()});
+                        option.appendTo(select);
                     }
-                    for ( i=0; i < row0.length; i++) {
-                        var row = table.insertRow(table.rows.length);
-                        var columnIndex = row.insertCell(0);
-                        columnIndex.innerHTML = i.toString();
-                        var columnName = row.insertCell(1);
-                        var is_first_line_header = document.getElementById('first_line_header_check').checked
-                        if(is_first_line_header){
-                            columnName.innerHTML = row0[i];
-                        }else{
-                            columnName.innerHTML = 'Column'+i.toString();
-                        }
-                       
-                        var columnData = row.insertCell(2);
-                        columnData.innerHTML = row1[i];
-                        var columnMapping = row.insertCell(3);
-                        
-                        var select = document.createElement('select');
-                        select.setAttribute('class', 'form-control');
-                        select.setAttribute('id', 'select_'+i.toString());
-                        //crear option select
-                                              
-                        for (j = 0; j < targetColumns.length; j++)
-                        {
-                            var prop = targetColumns[j];
-                            var option = document.createElement('option');
-                            option.text = prop.name;
-                            select.appendChild(option);
-                         }
-                         
-                       columnMapping.appendChild(select);
-            
-                     }
-            };
+                    select.appendTo(headingCell);
+                    headingCell.appendTo(row); 
+                }
+                $('table#table_mapping thead').append(row);
+           };
+
+           var columnCount = function() {
+            //alert('entra en ColumnCount');
+             if (json_array != null){
+                //alert('return ColumnCount' + json_array.data[1].length);
+                return json_array.data[1].length;
+             } else { return 0;}
+           };
+            var rowCount = function() {
+            //alert('entra en ColumnCount');
+             if (json_array != null){
+                //alert('return ColumnCount' + json_array.data[1].length);
+                return json_array.data.length;
+             } else { return 0;}
+           };
         });
     </script>
     
