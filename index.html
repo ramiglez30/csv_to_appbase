@@ -64,10 +64,9 @@
     <script src="js/papaparse.min.js"></script>
     <script src="js/mocks.js"></script>
     <script src="js/appBaseService.js"></script>
-
-     <script>
-        $(document).ready(function(){
-              //carga fichero y contenido en el textarea
+    <script>
+        $(document).ready(function() {
+            //carga fichero y contenido en el textarea
             $('#csv_file_input').bind('change', function(event) {
                 var input = event.target;
 
@@ -82,46 +81,48 @@
             });
             //busca los datos desde el appbase
             $.appBaseService.getForms(function(result) {
-                var keys = Object.keys(result) ;
-                    keys.forEach(key => {
-                                var drop_forms = document.getElementById('form_names');
-                                var option = document.createElement('option');
-                                option.text = key;
-                                drop_forms.add(option);
-                            });
-               });
+                var keys = Object.keys(result);
+                keys.forEach(key => {
+                    var drop_forms = document.getElementById('form_names');
+                    var option = document.createElement('option');
+                    option.text = key;
+                    drop_forms.add(option);
+                });
+            });
         });
     </script>
     <script>
         $(document).ready(function() {
             //datos parseados a JSON
             var json_array = null;
+
             var formObject = null; 
-                        
             //event handler para cuando el usuario marca la primera fila como cabecera
             $('input[type=checkbox]').on('change', function() {
                 parseCSVtoJSON();
                 seedTableData();
             });
-            
+
             //event handler para el select form
             $('select#form_names').on('change',function() {
                  $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
                  seedHeadingMaps();
              });
 
+
             //event handler para cuando el usuario edita el texto
             $("#file_content").on("input", function(event) {
                 parseCSVtoJSON();
                 seedTableData();
             });
-            
+
             //function parser del texto CSV a un objeto JSON
             var parseCSVtoJSON = function() {
                 json_array = Papa.parse($('#file_content').val(), {
                     dynamicTyping: true,
                     header: false
                 });
+<<<<<<< .merge_file_a05540
            };
                      
            //llena la tabla del mapping
@@ -196,11 +197,11 @@
            };
         });
     </script>
-    
-   
-    <!--<script src="js/mocks.js"></script>-->
-    
-    <!--<script src="js/test/appBaseServiceTest.js"></script>-->
+
+
+    <script src="js/mocks.js"></script>
+
+    <script src="js/test/appBaseServiceTest.js"></script>
 </body>
 
 </html>
