@@ -28,7 +28,7 @@
                         <b> <input id="first_line_header_check" type="checkbox" /> <span>Is first row column headings?</span></b>
                     </div>
                     <br />
-               
+
                 </div>
 
 
@@ -43,10 +43,14 @@
                     <div class="panel-body">
                         <table id="table_mapping" class="table">
                             <thead>
-                                <tr><th>probando</th></tr>
+                                <tr>
+                                    <th>probando</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                <tr><td>probando</td></tr>
+                                <tr>
+                                    <td>probando</td>
+                                </tr>
                             </tbody>
 
                         </table>
@@ -96,7 +100,7 @@
             //datos parseados a JSON
             var json_array = null;
 
-            var formObject = null; 
+            var formObject = null;
             //event handler para cuando el usuario marca la primera fila como cabecera
             $('input[type=checkbox]').on('change', function() {
                 parseCSVtoJSON();
@@ -104,10 +108,12 @@
             });
 
             //event handler para el select form
-            $('select#form_names').on('change',function() {
-                 $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
-                 seedHeadingMaps();
-             });
+            $('select#form_names').on('change', function() {
+                $.appBaseService.getForms((result) => {
+                    formObject = result[this.options[this.selectedIndex].value]
+                });
+                seedHeadingMaps();
+            });
 
 
             //event handler para cuando el usuario edita el texto
@@ -122,84 +128,99 @@
                     dynamicTyping: true,
                     header: false
                 });
-<<<<<<< .merge_file_a05540
-           };
-                     
-           //llena la tabla del mapping
-            var seedTableData = function(){
+            };
+
+            //llena la tabla del mapping
+            var seedTableData = function() {
                 $("table#table_mapping tbody").children().remove();
 
 
-                if(json_array == null && $('#file_content').val() != "") {
+                if (json_array == null && $('#file_content').val() != "") {
                     parseCSVtoJSON();
-                } 
+                }
                 //alert('pasa por 136');
                 //si no hay nada en file_content salir del metodo.
-                if($('#file_content').val() == '') { 
+                if ($('#file_content').val() == '') {
                     //alert('voy a retornar')
                     return;
                 }
                 //alert('pasa por 142');
                 var counter = 10;
-                if(rowCount() < 10) {counter = rowCount();} 
+                if (rowCount() < 10) {
+                    counter = rowCount();
+                }
 
                 var a = 0;
-                if(document.getElementById('first_line_header_check').checked) {a = 1;}
+                if (document.getElementById('first_line_header_check').checked) {
+                    a = 1;
+                }
 
-                for(i = a; i < counter; i++) {
+                for (i = a; i < counter; i++) {
                     //alert('entra en el for i con columnCount =' + columnCount().toString());
-                    var rowData = $('<tr></tr>'); 
-                    for (var k = 0; k < columnCount(); k++){
+                    var rowData = $('<tr></tr>');
+                    for (var k = 0; k < columnCount(); k++) {
                         //alert('entra en el for k');
                         //alert(json_array.data[i][k]);
-                        $('<td>'+json_array.data[i][k]+'</td>').appendTo(rowData);
+                        $('<td>' + json_array.data[i][k] + '</td>').appendTo(rowData);
                     }
 
                     $("table#table_mapping tbody").append(rowData);
                     //alert('inserta elementto 157');
                 }
-           };
+            };
 
-           var seedHeadingMaps = function() {
-                if(formObject == null){return;}
-                var columnProperties = formObject.properties; 
+            var seedHeadingMaps = function() {
+                if (formObject == null) {
+                    return;
+                }
+                var columnProperties = formObject.properties;
                 //clean datatable 
-                $("table#table_mapping thead").children().remove(); 
-                   var row = $('<tr></tr>');
-                for(var j = 0; j<columnCount(); j++){
-                    var headingCell = $('<th></th>'); 
-                    var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'}); 
-                    var ignore = $('<option>ignore</option>', {'data-value': 'ignore'});
+                $("table#table_mapping thead").children().remove();
+                var row = $('<tr></tr>');
+                for (var j = 0; j < columnCount(); j++) {
+                    var headingCell = $('<th></th>');
+                    var select = $('<select></select>', {
+                        id: "select_" + j.toString(),
+                        'class': 'form-control'
+                    });
+                    var ignore = $('<option>ignore</option>', {
+                        'data-value': 'ignore'
+                    });
                     ignore.appendTo(select);
-                    for(var k = 0; k< columnProperties.length; k++){
-                        var option = $('<option>'+columnProperties[k].name+'</option>', {'data-value': columnProperties[k].name, 'data-type':columnProperties[k].type, 'data-index':k.toString()});
+                    for (var k = 0; k < columnProperties.length; k++) {
+                        var option = $('<option>' + columnProperties[k].name + '</option>', {
+                            'data-value': columnProperties[k].name,
+                            'data-type': columnProperties[k].type,
+                            'data-index': k.toString()
+                        });
                         option.appendTo(select);
                     }
                     select.appendTo(headingCell);
-                    headingCell.appendTo(row); 
+                    headingCell.appendTo(row);
                 }
                 $('table#table_mapping thead').append(row);
-           };
+            };
 
-           var columnCount = function() {
-            //alert('entra en ColumnCount');
-             if (json_array != null){
-                //alert('return ColumnCount' + json_array.data[1].length);
-                return json_array.data[1].length;
-             } else { return 0;}
-           };
+            var columnCount = function() {
+                //alert('entra en ColumnCount');
+                if (json_array != null) {
+                    //alert('return ColumnCount' + json_array.data[1].length);
+                    return json_array.data[1].length;
+                } else {
+                    return 0;
+                }
+            };
             var rowCount = function() {
-            //alert('entra en ColumnCount');
-             if (json_array != null){
-                //alert('return ColumnCount' + json_array.data[1].length);
-                return json_array.data.length;
-             } else { return 0;}
-           };
+                //alert('entra en ColumnCount');
+                if (json_array != null) {
+                    //alert('return ColumnCount' + json_array.data[1].length);
+                    return json_array.data.length;
+                } else {
+                    return 0;
+                }
+            };
         });
     </script>
-
-
-    <script src="js/mocks.js"></script>
 
     <script src="js/test/appBaseServiceTest.js"></script>
 </body>

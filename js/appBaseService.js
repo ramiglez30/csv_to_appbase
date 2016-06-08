@@ -64,7 +64,7 @@ $.extend({
                         var mappingPropertiesMap = getMappingPropertiesFormMap();
                         var mappingPropertiesArray = Array();
                         for (var index in mappingObj.mappingProperties) {
-                            var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.mappingProperties[index])
+                            var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.sourceName, mappingObj.mappingProperties[index])
                             mappingPropertiesArray.push(mappingPropertiesRow);
                         }
 
@@ -135,7 +135,7 @@ $.extend({
                         var dataColumn = dataRow[mappingItem.fileColumn.number];
 
                         if (mappingItem.formColumn.isReference) {
-                            var value = getValueForReferenceColumn(dataColumn);
+                            var value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
                             storeDataArray.splice(mappingItem.formColumn.order, 0, value);
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
@@ -143,7 +143,7 @@ $.extend({
 
                     } else {
                         if (mappingItem.formColumn.isReference) {
-                            var value = getValueForReferenceColumn('');
+                            var value = getValueForReferenceColumn(mappingItem.formColumn.type, '');
                             storeDataArray.splice(mappingItem.formColumn.order, 0, value);
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, ''));
@@ -194,16 +194,16 @@ $.extend({
         };
 
         /**Esta funcion permite construir la estructura para los campos que son referencia*/
-        var getValueForReferenceColumn = function(dataColumn) {
+        var getValueForReferenceColumn = function(dataType, dataColumn) {
             var value = '(';
             if (Array.isArray(dataColumn)) {
                 for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
                     value += indexRef > 0 ? ',' : '';
-                    value += '"' + dataColumn[indexRef] + '"';
+                    value += '"' + getStoreDataFormat(dataType, dataColumn[indexRef]) + '"';
                 }
                 value += ')';
             } else {
-                value += dataColumn + ')';
+                value += getStoreDataFormat(dataType, dataColumn) + ')';
             }
 
             return value;
@@ -224,6 +224,19 @@ $.extend({
 
         /**Esta funcion busca en el appBase todos los formularios,
          * y pasa al callback un objeto con la definicion de los formularios
+         * obj = {
+         * formName: '',
+         * properties: [
+         *      {
+         * name:'',
+         * type:'',
+         * order: -1,
+         * isReference: false,
+         * formReferenced: '',
+         * dataReferenced: ''
+         *      }
+         * ]
+         * }
          */
         self.getForms = function(getFormsCallback) {
 
@@ -428,7 +441,10 @@ $.extend({
                     formColumn: {
                         name: 'SOURCE_NAME',
                         type: 'TEXT',
-                        order: 0
+                        order: 0,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }, {
                     fileColumn: {
@@ -438,7 +454,10 @@ $.extend({
                     formColumn: {
                         name: 'FILE_TYPE',
                         type: 'TEXT',
-                        order: 1
+                        order: 1,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }, {
                     fileColumn: {
@@ -448,7 +467,10 @@ $.extend({
                     formColumn: {
                         name: 'FORM_NAME',
                         type: 'TEXT',
-                        order: 2
+                        order: 2,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }, {
                     fileColumn: {
@@ -458,7 +480,10 @@ $.extend({
                     formColumn: {
                         name: 'IS_FIRST_COL_HEAD',
                         type: 'BOOLEAN',
-                        order: 3
+                        order: 3,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }]
             }
@@ -559,9 +584,45 @@ $.extend({
                         isIgnored: false
                     },
                     formColumn: {
-                        name: 'SOURCE_NAME',
-                        type: 'NUMBER',
+                        name: 'IS_REFERENCE',
+                        type: 'BOOLEAN',
                         order: 7,
+                        isReference: false,
+                        dataReference: null
+                    }
+                }, {
+                    fileColumn: {
+                        number: 8,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FORM_REFERENCED',
+                        type: 'TEXT',
+                        order: 8,
+                        isReference: false,
+                        dataReference: null
+                    }
+                }, {
+                    fileColumn: {
+                        number: 9,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'DATA_REFERENCED',
+                        type: 'TEXT',
+                        order: 9,
+                        isReference: false,
+                        dataReference: null
+                    }
+                }, {
+                    fileColumn: {
+                        number: 10,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'SOURCE_NAME',
+                        type: 'TEXT',
+                        order: 10,
                         isReference: true,
                         dataReference: {
                             formName: 'MAPPING',
@@ -573,7 +634,7 @@ $.extend({
         }
 
         /** Este metodo construye la estructura de Rows para el formulario de MappingProperties */
-        var getMappingPropertiesRow = function(propertyObj) {
+        var getMappingPropertiesRow = function(mappingName, propertyObj) {
 
             return [
                 propertyObj.fileColumn.colStart,
@@ -584,7 +645,9 @@ $.extend({
                 propertyObj.formColumn.type,
                 propertyObj.formColumn.order,
                 propertyObj.formColumn.isReference,
-                propertyObj.formColumn.reference
+                propertyObj.formColumn.formReferenced,
+                propertyObj.formColumn.dataReferenced,
+                mappingName
             ];
         }
     }
@@ -593,6 +656,6 @@ $.extend({
 $(function() {
     $.appBaseService.initialize({
         requestForm: true,
-        useMock: true
+        useMock: false
     });
 })
