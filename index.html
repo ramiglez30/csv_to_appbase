@@ -28,7 +28,7 @@
                         <b> <input id="first_line_header_check" type="checkbox" /> <span>Is first row column headings?</span></b>
                     </div>
                     <br />
-               
+
                 </div>
 
 
@@ -43,10 +43,10 @@
                     <div class="panel-body">
                         <table id="table_mapping" class="table">
                             <thead>
-                                <tr><th>probando</th></tr>
+
                             </thead>
                             <tbody>
-                                <tr><td>probando</td></tr>
+
                             </tbody>
 
                         </table>
@@ -64,13 +64,13 @@
     <script src="js/papaparse.min.js"></script>
     <script src="js/mocks.js"></script>
     <script src="js/appBaseService.js"></script>
-    
+
     <script>
         $(document).ready(function() {
             //datos parseados a JSON
             var json_array = null;
 
-            var formObject = null; 
+            var formObject = null;
             //event handler para cuando el usuario marca la primera fila como cabecera
             $('input[type=checkbox]').on('change', function() {
                 parseCSVtoJSON();
@@ -97,7 +97,7 @@
                     header: false
                 });
            };
-                     
+
            //llena la tabla del mapping
             var seedTableData = function(){
                 $("table#table_mapping tbody").children().remove();
@@ -105,28 +105,31 @@
 
                 if(json_array == null && $('#file_content').val() != "") {
                     parseCSVtoJSON();
-                } 
+                }
                 //alert('pasa por 136');
                 //si no hay nada en file_content salir del metodo.
-                if($('#file_content').val() == '') { 
+                if($('#file_content').val() == '') {
                     //alert('voy a retornar')
                     return;
                 }
                 //alert('pasa por 142');
                 var counter = 10;
-                if(rowCount() < 10) {counter = rowCount();} 
+                if(rowCount() < 10) {counter = rowCount();}
 
                 var a = 0;
                 if(document.getElementById('first_line_header_check').checked) {a = 1;}
 
                 for(i = a; i < counter; i++) {
                     //alert('entra en el for i con columnCount =' + columnCount().toString());
-                    var rowData = $('<tr></tr>'); 
+                    var rowData = $('<tr></tr>');
                     for (var k = 0; k < columnCount(); k++){
                         //alert('entra en el for k');
                         //alert(json_array.data[i][k]);
                         $('<td>'+json_array.data[i][k]+'</td>').appendTo(rowData);
                     }
+
+                    var del_button = $('<td><button onClick="removeRow" data-toggle="tooltip" data-placement="left" title="Delete this Row"><span class="glyphicon glyphicon-remove"><span></button></td>');
+                    del_button.appendTo(rowData);
 
                     $("table#table_mapping tbody").append(rowData);
                     //alert('inserta elementto 157');
@@ -135,13 +138,13 @@
 
            var seedHeadingMaps = function() {
                 if(formObject == null){return;}
-                var columnProperties = formObject.properties; 
-                //clean datatable 
-                $("table#table_mapping thead").children().remove(); 
+                var columnProperties = formObject.properties;
+                //clean datatable
+                $("table#table_mapping thead").children().remove();
                    var row = $('<tr></tr>');
-                for(var j = 0; j<columnCount() + 1; j++){
-                    var headingCell = $('<th></th>'); 
-                    var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'}); 
+                for(var j = 0; j<columnCount(); j++){
+                    var headingCell = $('<th></th>');
+                    var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'});
                     var ignore = $('<option>ignore</option>', {'data-value': 'ignore'});
                     ignore.appendTo(select);
                     for(var k = 0; k< columnProperties.length; k++){
@@ -157,7 +160,7 @@
                         option.appendTo(select);
                     }
                     select.appendTo(headingCell);
-                    headingCell.appendTo(row); 
+                    headingCell.appendTo(row);
                 }
                 $('table#table_mapping thead').append(row);
            };
@@ -189,7 +192,7 @@
                     seedTableData();
                 }
                 reader.readAsText(input.files[0]);
- 
+
             });
             //busca los datos desde el appbase
             $.appBaseService.getForms(function(result) {
@@ -203,6 +206,11 @@
             });
 
         });
+
+        function removeRow(e){
+          $(e)
+        }
+
     </script>
 
     <script src="js/mocks.js"></script>
