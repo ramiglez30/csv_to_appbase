@@ -6,6 +6,9 @@
 
 
     <link href="css/bootstrap.css" rel="stylesheet" />
+
+    <link href="css/csv_importer.css" rel="stylesheet" />
+
 </head>
 
 <body>
@@ -18,10 +21,20 @@
             <div class="panel-body">
 
                 <div>
-                    <input id="csv_file_input" type="file" accept=".csv" /><br />
+                  <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                      <input id="csv_file_input" type="file" accept=".csv" />
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 text-right">
+                        <a id="see_source_btn" class="btn btn-primary" role="button" data-toggle="collapse" href="#div_file_content" aria-expanded="false" aria-controls="div_file_content">See source file content &nbsp;<span class=" glyphicon glyphicon-chevron-down"></span></a>
+                    </div>
+                  </div>
+                    <br />
 
-                    <label>File content:</label>
-                    <textarea id="file_content" class="form-control" style="min-height:100px"></textarea>
+                  <div id="div_file_content" class="collapse">
+                        <textarea id="file_content" class="form-control" style="min-height:100px"></textarea>
+                    </div>
+
 
                     <br />
                     <div>
@@ -37,10 +50,10 @@
                         <h3>Mapping</h3>
                         <label>Select FORM to send data:</label>
                         <select class="form-control form-control" id="form_names">
-                           <option id="op_0_select">Select...</option>
+                           <option id="0">Select...</option>
                         </select>
                     </div>
-                    <div class="panel-body">
+                    <div id="table_container" class="panel-body">
                         <table id="table_mapping" class="table">
                             <thead>
 
@@ -58,6 +71,15 @@
 
         </div>
     </div>
+    <script>
+    Function.prototype.applyAsync = function(params, cb){
+      var function_context = this;
+      setTimeout(function(){
+          var val = function_context.apply(this, params);
+          if(cb) cb(val);
+      }, 0);
+    };
+    </script>
     <script src="js/jquery-1.12.4.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/csv_loader.js"></script>
@@ -71,24 +93,6 @@
             var json_array = null;
 
             var formObject = null;
-            //event handler para cuando el usuario marca la primera fila como cabecera
-            $('input[type=checkbox]').on('change', function() {
-                parseCSVtoJSON();
-                seedTableData();
-            });
-
-            //event handler para el select form
-            $('select#form_names').on('change',function() {
-                 $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
-                 seedHeadingMaps();
-             });
-
-
-            //event handler para cuando el usuario edita el texto
-            $("#file_content").on("input", function(event) {
-                parseCSVtoJSON();
-                seedTableData();
-            });
 
             //function parser del texto CSV a un objeto JSON
             var parseCSVtoJSON = function() {
@@ -101,20 +105,16 @@
            //llena la tabla del mapping
             var seedTableData = function(){
                 $("table#table_mapping tbody").children().remove();
+                $("table#table_mapping thead").children().remove();
+                $('select#form_names option:selected').removeAttr('selected');
 
-
-                if(json_array == null && $('#file_content').val() != "") {
+                if(json_array == null) {
                     parseCSVtoJSON();
                 }
-                //alert('pasa por 136');
-                //si no hay nada en file_content salir del metodo.
-                if($('#file_content').val() == '') {
-                    //alert('voy a retornar')
-                    return;
-                }
+
                 //alert('pasa por 142');
-                var counter = 10;
-                if(rowCount() < 10) {counter = rowCount();}
+                var counter = rowCount();
+                //if(rowCount() < 10) {counter = rowCount();}
 
                 var a = 0;
                 if(document.getElementById('first_line_header_check').checked) {a = 1;}
@@ -122,19 +122,37 @@
                 for(i = a; i < counter; i++) {
                     //alert('entra en el for i con columnCount =' + columnCount().toString());
                     var rowData = $('<tr></tr>');
+                    var del_button = $('<td><a data-toggle="tooltip" data-placement="left" data-index="'+i.toString()+'" title="Delete this Row"><span class="glyphicon glyphicon-remove text-danger"><span></a></td>');
+                    del_button.on('click', 'removeRow');
+                    del_button.appendTo(rowData);
                     for (var k = 0; k < columnCount(); k++){
                         //alert('entra en el for k');
                         //alert(json_array.data[i][k]);
                         $('<td>'+json_array.data[i][k]+'</td>').appendTo(rowData);
                     }
-
-                    var del_button = $('<td><button onClick="removeRow" data-toggle="tooltip" data-placement="left" title="Delete this Row"><span class="glyphicon glyphicon-remove"><span></button></td>');
-                    del_button.appendTo(rowData);
-
                     $("table#table_mapping tbody").append(rowData);
                     //alert('inserta elementto 157');
                 }
            };
+
+            //event handler para cuando el usuario marca la primera fila como cabecera
+            $('input[type=checkbox]').on('change', function() {
+                parseCSVtoJSON.applyAsync([], seedTableData);
+            });
+
+            //event handler para el select form
+            $('select#form_names').on('change',function() {
+                 $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
+                 seedHeadingMaps();
+             });
+
+
+            //event handler para cuando el usuario edita el texto
+            $("#file_content").on("input", function(event) {
+                parseCSVtoJSON.applyAsync([], seedTableData);
+            });
+
+
 
            var seedHeadingMaps = function() {
                 if(formObject == null){return;}
@@ -142,6 +160,8 @@
                 //clean datatable
                 $("table#table_mapping thead").children().remove();
                    var row = $('<tr></tr>');
+                   var emptycell = $('<th></th>');
+                   emptycell.appendTo(row);
                 for(var j = 0; j<columnCount(); j++){
                     var headingCell = $('<th></th>');
                     var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'});
@@ -189,7 +209,7 @@
                     var text = reader.result.split(' ').filter(n => n).join(' ');
                     var content = document.getElementById('file_content');
                     content.value = text;
-                    seedTableData();
+                    parseCSVtoJSON.applyAsync([], seedTableData);
                 }
                 reader.readAsText(input.files[0]);
 
@@ -207,9 +227,17 @@
 
         });
 
-        function removeRow(e){
-          $(e)
-        }
+        $('#see_source_btn').on('click', function() {
+            if(!$('#div_file_content').hasClass('in')) {
+              $(this).children('span').removeClass('glyphicon-chevron-down');
+              $(this).children('span').addClass('glyphicon-chevron-up');
+            }else{
+              $(this).children('span').removeClass('glyphicon-chevron-up');
+              $(this).children('span').addClass('glyphicon-chevron-down');
+            }
+        } );
+
+
 
     </script>
 
