@@ -1,5 +1,6 @@
 $.extend({
     appBaseService: new function() {
+        var appBaseUrl = 'http://dev.synchronit.com/appbase-webconsole/json';
         var self = this;
         var formsArray = null;
         self.options = null;
@@ -163,30 +164,20 @@ $.extend({
                         endCallback();
                     }
                 } else {
-                    $.ajax({
-                        type: 'GET',
-                        url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                        cache: false,
-                        dataType: 'json',
-                        //async: false,
-                        data: {
-                            command: 'Create New ' + mappingObj.formName + '(' + formQuery + ')'
-                        },
-                        success: function(result) {
+                    var command = 'Create New ' + mappingObj.formName + '(' + formQuery + ')';
 
-                            if (callback != undefined && callback != null) {
-                                callback({
-                                    current: i,
-                                    total: dataLength
-                                });
-                            }
-                            if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
-                                endCallback();
-                            }
-                        },
-                        error: function() {
-
+                    serverRequest(command, function(result) {
+                        if (callback != undefined && callback != null) {
+                            callback({
+                                current: i,
+                                total: dataLength
+                            });
                         }
+                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                            endCallback();
+                        }
+                    }, function() {
+
                     });
 
                 }
@@ -255,20 +246,11 @@ $.extend({
                 parseFormRows(formsMock(), callback)
             } else {
                 formsArray = Array();
-                $.ajax({
-                    type: 'GET',
-                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                    cache: false,
-                    dataType: 'json',
-                    data: {
-                        command: 'SHOW FORMS'
-                    },
-                    success: function(result) {
-                        parseFormRows(result, callback)
-                    },
-                    error: function() {
+                var command = 'SHOW FORMS';
+                serverRequest(command, function(result) {
+                    parseFormRows(result, callback)
+                }, function() {
 
-                    }
                 });
             }
         };
@@ -334,7 +316,7 @@ $.extend({
                 default:
                     return value;
             }
-        }
+        };
 
         /**Este metodo consulta el appBase y devuelve los datos de un formulario */
         self.getFormData = function(formName, callback) {
@@ -347,30 +329,21 @@ $.extend({
                     callback(formDataMock(formName))
                 }
             } else {
-                $.ajax({
-                    type: 'GET',
-                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                    cache: false,
-                    dataType: 'json',
-                    async: false,
-                    data: {
-                        command: 'Get ' + formName
-                    },
-                    success: function(result) {
-                        if (result.code == 100) {
-                            var headers = result.resultSet.headers;
-                            var rows = result.resultSet.rows;
-                            if (callback != undefined && callback != null) {
-                                callback(result.resultSet)
-                            }
-                        }
-                    },
-                    error: function() {
 
+                var command = 'GET ' + formName;
+                serverRequest(command, function(result) {
+                    if (result.code == 100) {
+                        var headers = result.resultSet.headers;
+                        var rows = result.resultSet.rows;
+                        if (callback != undefined && callback != null) {
+                            callback(result.resultSet)
+                        }
                     }
+                }, function(error) {
+
                 });
             }
-        }
+        };
 
         /**Este metodo comprueba si en los datos de un formulario ya existe el dato especificado.
          * requiere para su funcionamiento que se pasen los datos del formulario
@@ -418,7 +391,7 @@ $.extend({
             }
 
             return found == true ? index : -1;
-        }
+        };
 
         /**** Util for Mapping ****/
         /** Este metodo construye la estructura de Rows para el formulario de Mapping */
@@ -426,7 +399,7 @@ $.extend({
             return [
                 [mappingObj.sourceName, mappingObj.fileType, mappingObj.formName, mappingObj.isFirstColumnHeading]
             ];
-        }
+        };
 
         /** Este metodo construye la estructura del objeto de mapping para el formulario de Mapping */
         var getMappingFormMap = function() {
@@ -487,7 +460,7 @@ $.extend({
                     }
                 }]
             }
-        }
+        };
 
         /** Este metodo construye la estructura del objeto de mapping para el formulario de MappingProperties */
         var getMappingPropertiesFormMap = function() {
@@ -631,7 +604,7 @@ $.extend({
                     }
                 }]
             }
-        }
+        };
 
         /** Este metodo construye la estructura de Rows para el formulario de MappingProperties */
         var getMappingPropertiesRow = function(mappingName, propertyObj) {
@@ -649,7 +622,56 @@ $.extend({
                 propertyObj.formColumn.dataReferenced,
                 mappingName
             ];
-        }
+        };
+
+        /**Este metodo consulta todas las definiciones de mapping que se han guardado en el appBase */
+        self.getMappings = function(callback) {
+            self.getFormData('MAPPING', function(resultSet) {
+                if (result.code != 100) {
+                    return;
+                }
+
+                var headers = result.resultSet.headers;
+                var rows = result.resultSet.rows;
+                var mapingArray = Array();
+                for (var index in rows) {
+                    //Aqui se puede consultar MAPPING_PROPERTIES para obtener las properties de cada definicion
+                    var obj = {
+                        sourceName: rows[index][],
+                        fileType: rows[index][],
+                        formName: rows[index][],
+                        isFirstColumnHeading: rows[index][],
+                    }
+                    mapingArray.push(obj);
+                }
+
+                if (callback != undefined && callback != null) {
+                    callback(mapingArray);
+                }
+            });
+        };
+
+        /**Este metodo dado el nombre o identificador de una definicion de maping obtiene toda la definicion*/
+        self.getMapping = function(mappingName, callback) {
+            self.getFormData('MAPPING', function(resultSet) {
+
+            });
+        };
+
+        /** Este metodo es generico sirve para hacer las request al application base*/
+        var serverRequest = function(commandText, successCallback, errorCallback) {
+            $.ajax({
+                type: 'GET',
+                url: appBaseUrl,
+                cache: false,
+                dataType: 'json',
+                data: {
+                    command: commandText
+                },
+                success: successCallback,
+                error: errorCallback
+            });
+        };
     }
 });
 
