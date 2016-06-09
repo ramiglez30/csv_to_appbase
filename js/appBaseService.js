@@ -318,8 +318,14 @@ $.extend({
             }
         };
 
-        /**Este metodo consulta el appBase y devuelve los datos de un formulario */
-        self.getFormData = function(formName, callback) {
+        /**Este metodo consulta el appBase y devuelve los datos de un formulario 
+         * filterPropertyArray = [{
+         *      fieldName: 'TEXT',
+         *      fieldValue: value,
+         *      fieldType: 'TEXT, NUMBER, BOOLEAN'
+         * }]
+         */
+        self.getFormData = function(formName, filterPropertyArray, callback) {
             if (formName == undefined || formName == null) {
                 return;
             }
@@ -331,6 +337,17 @@ $.extend({
             } else {
 
                 var command = 'GET ' + formName;
+
+                if (filterPropertyArray != undefined && Array.isArray(filterPropertyArray)) {
+                    command += ' with ';
+                    for (var index in filterPropertyArray) {
+                        if (index > 0) {
+                            command += ' and ';
+                        }
+                        command += filterPropertyArray[index].fieldName + ' = ' + getStoreDataFormat(filterPropertyArray[index].fieldType, filterPropertyArray[index].fieldValue)
+                    }
+                }
+
                 serverRequest(command, function(result) {
                     if (result.code == 100) {
                         var headers = result.resultSet.headers;
@@ -626,35 +643,96 @@ $.extend({
 
         /**Este metodo consulta todas las definiciones de mapping que se han guardado en el appBase */
         self.getMappings = function(callback) {
-            self.getFormData('MAPPING', function(resultSet) {
-                if (result.code != 100) {
+            self.getFormData('MAPPING', null, function(resultSet) {
+                /*if (result.code != 100) {
                     return;
-                }
+                }*/
 
-                var headers = result.resultSet.headers;
-                var rows = result.resultSet.rows;
+                var headers = resultSet.headers;
+                var rows = resultSet.rows;
                 var mapingArray = Array();
                 for (var index in rows) {
                     //Aqui se puede consultar MAPPING_PROPERTIES para obtener las properties de cada definicion
-                    var obj = {
-                        sourceName: rows[index][],
-                        fileType: rows[index][],
-                        formName: rows[index][],
-                        isFirstColumnHeading: rows[index][],
-                    }
-                    mapingArray.push(obj);
-                }
+                    var filterArray = [{
+                        fieldName: 'MAPPING.SOURCE_NAME',
+                        fieldValue: rows[index][0],
+                        fieldType: 'TEXT'
+                    }]
+                    self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult) {
+                        var mappingPropertiesResult = filterResult.rows;
+                        var mappingObj = getMappingObj(rows[index], filterResult.rows);
 
-                if (callback != undefined && callback != null) {
-                    callback(mapingArray);
+                        mapingArray.push(mappingObj);
+
+                        if (index == rows.length) {
+                            if (callback != undefined && callback != null) {
+                                callback(mapingArray);
+                            }
+                        }
+                    });
                 }
             });
         };
 
+        /** Esta funcion construye el objeto de mapping */
+        var getMappingObj = function(mappingRow, mappingPropertyRows) {
+            var mappingProperties = Array();
+            for (var filterIndex in mappingPropertyRows) {
+                var property = {
+                    fileColumn: {
+                        colStart: mappingPropertyRows[filterIndex][0],
+                        colEnd: mappingPropertyRows[filterIndex][1],
+                        colIndex: mappingPropertyRows[filterIndex][2],
+                        isIgnored: mappingPropertyRows[filterIndex][3],
+                    },
+                    formColumn: {
+                        name: mappingPropertyRows[filterIndex][4],
+                        type: mappingPropertyRows[filterIndex][5],
+                        order: mappingPropertyRows[filterIndex][6],
+                        isReference: mappingPropertyRows[filterIndex][7],
+                        reference: {
+                            formName: mappingPropertyRows[filterIndex][8],
+                            fieldName: mappingPropertyRows[filterIndex][9]
+                        }
+                    }
+                }
+
+                mappingProperties.push(property);
+            }
+
+            var mappingObj = {
+                sourceName: mappingRow[0],
+                fileType: mappingRow[1],
+                formName: mappingRow[2],
+                isFirstColumnHeading: mappingRow[3],
+                mappingProperties: mappingProperties
+            }
+        }
+
         /**Este metodo dado el nombre o identificador de una definicion de maping obtiene toda la definicion*/
         self.getMapping = function(mappingName, callback) {
-            self.getFormData('MAPPING', function(resultSet) {
+            var filterArray = [{
+                fieldName: 'SOURCE_NAME',
+                fieldValue: mappingName
+            }]
+            self.getFormData('MAPPING', filterArray, function(resultSet) {
+                var headers = resultSet.headers;
+                var rows = resultSet.rows;
+                if (rows.length > 0) {
+                    var filterArray = [{
+                        fieldName: 'MAPPING.SOURCE_NAME',
+                        fieldValue: rows[0][0],
+                        fieldType: 'TEXT'
+                    }];
+                    self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult) {
+                        var mappingPropertiesResult = filterResult.rows;
+                        var mappingObj = getMappingObj(rows[index], filterResult.rows);
 
+                        if (callback != undefined && callback != null) {
+                            callback(mappingObj);
+                        }
+                    });
+                }
             });
         };
 

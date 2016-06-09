@@ -137,10 +137,18 @@ function existDataInFormTest() {
     })
 }
 
+function getMappingsTest() {
+    $.appBaseService.getMappings(function(mappingArray) {
+        console.log(mappingArray);
+
+    })
+}
+
 $(document).ready(function() {
     initServiceTest();
     //saveDataTest();
-    saveMappingTest();
+    //saveMappingTest();
     //getFormDataTest();
     //existDataInFormTest();
+    getMappingsTest();
 });
