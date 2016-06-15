@@ -8,7 +8,15 @@
     <link href="css/bootstrap.css" rel="stylesheet" />
 
     <link href="css/csv_importer.css" rel="stylesheet" />
-
+    <script>
+    Function.prototype.applyAsync = function(params, cb){
+      var function_context = this;
+      setTimeout(function(){
+          var val = function_context.apply(this, params);
+          if(cb) cb(val);
+      }, 0);
+    };
+    </script>
 </head>
 
 <body>
@@ -35,12 +43,7 @@
                         <textarea id="file_content" class="form-control" style="min-height:100px"></textarea>
                     </div>
 
-
-                    <br />
-                    <div>
-                        <b> <input id="first_line_header_check" type="checkbox" /> <span>Is first row column headings?</span></b>
-                    </div>
-                    <br />
+<br>
 
                 </div>
 
@@ -63,23 +66,18 @@
                             </tbody>
 
                         </table>
-
+                       
                     </div>
-
+                    <div style="margin:20px;">
+                        <button id="send_data_btn" class="btn btn-primary" >Send Data to App Base</button>
+                    </div>
+                     
                 </div>
             </div>
 
         </div>
     </div>
-    <script>
-    Function.prototype.applyAsync = function(params, cb){
-      var function_context = this;
-      setTimeout(function(){
-          var val = function_context.apply(this, params);
-          if(cb) cb(val);
-      }, 0);
-    };
-    </script>
+
     <script src="js/jquery-1.12.4.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/csv_loader.js"></script>
@@ -88,145 +86,6 @@
     <script src="js/appBaseService.js"></script>
 
     <script>
-        $(document).ready(function() {
-            //datos parseados a JSON
-            var json_array = null;
-
-            var formObject = null;
-
-            //function parser del texto CSV a un objeto JSON
-            var parseCSVtoJSON = function() {
-                json_array = Papa.parse($('#file_content').val(), {
-                    dynamicTyping: true,
-                    header: false
-                });
-           };
-
-           //llena la tabla del mapping
-            var seedTableData = function(){
-                $("table#table_mapping tbody").children().remove();
-                $("table#table_mapping thead").children().remove();
-                $('select#form_names option:selected').removeAttr('selected');
-
-                if(json_array == null) {
-                    parseCSVtoJSON();
-                }
-
-                //alert('pasa por 142');
-                var counter = rowCount();
-                //if(rowCount() < 10) {counter = rowCount();}
-
-                var a = 0;
-                if(document.getElementById('first_line_header_check').checked) {a = 1;}
-
-                for(i = a; i < counter; i++) {
-                    //alert('entra en el for i con columnCount =' + columnCount().toString());
-                    var rowData = $('<tr></tr>');
-                    var del_button = $('<td><a data-toggle="tooltip" data-placement="left" data-index="'+i.toString()+'" title="Delete this Row"><span class="glyphicon glyphicon-remove text-danger"><span></a></td>');
-                    del_button.on('click', 'removeRow');
-                    del_button.appendTo(rowData);
-                    for (var k = 0; k < columnCount(); k++){
-                        //alert('entra en el for k');
-                        //alert(json_array.data[i][k]);
-                        $('<td>'+json_array.data[i][k]+'</td>').appendTo(rowData);
-                    }
-                    $("table#table_mapping tbody").append(rowData);
-                    //alert('inserta elementto 157');
-                }
-           };
-
-            //event handler para cuando el usuario marca la primera fila como cabecera
-            $('input[type=checkbox]').on('change', function() {
-                parseCSVtoJSON.applyAsync([], seedTableData);
-            });
-
-            //event handler para el select form
-            $('select#form_names').on('change',function() {
-                 $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
-                 seedHeadingMaps();
-             });
-
-
-            //event handler para cuando el usuario edita el texto
-            $("#file_content").on("input", function(event) {
-                parseCSVtoJSON.applyAsync([], seedTableData);
-            });
-
-
-
-           var seedHeadingMaps = function() {
-                if(formObject == null){return;}
-                var columnProperties = formObject.properties;
-                //clean datatable
-                $("table#table_mapping thead").children().remove();
-                   var row = $('<tr></tr>');
-                   var emptycell = $('<th></th>');
-                   emptycell.appendTo(row);
-                for(var j = 0; j<columnCount(); j++){
-                    var headingCell = $('<th></th>');
-                    var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'});
-                    var ignore = $('<option>ignore</option>', {'data-value': 'ignore'});
-                    ignore.appendTo(select);
-                    for(var k = 0; k< columnProperties.length; k++){
-                        var option = $('<option>'+columnProperties[k].name+'</option>');
-                        option.attr('data-name', columnProperties[k].name);
-                        option.attr('data-order', columnProperties[k].order);
-                        option.attr('data-type', columnProperties[k].type);
-                        option.attr('data-isReference', columnProperties[k].isReference);
-                        if(columnProperties[k].isReference=="true"){
-                            option.attr('data-formReferenced', columnProperties[k].formReferenced);
-                            option.attr('data-dataReferenced', columnProperties[k].dataReferenced);
-                        }
-                        option.appendTo(select);
-                    }
-                    select.appendTo(headingCell);
-                    headingCell.appendTo(row);
-                }
-                $('table#table_mapping thead').append(row);
-           };
-
-           var columnCount = function() {
-            //alert('entra en ColumnCount');
-             if (json_array != null){
-                //alert('return ColumnCount' + json_array.data[1].length);
-                return json_array.data[1].length;
-             } else { return 0;}
-           };
-            var rowCount = function() {
-            //alert('entra en ColumnCount');
-             if (json_array != null){
-                //alert('return ColumnCount' + json_array.data[1].length);
-                return json_array.data.length;
-             } else { return 0;}
-           };
-
-            //carga fichero y contenido en el textarea
-            $('#csv_file_input').bind('change', function(event) {
-                var input = event.target;
-
-                var reader = new FileReader();
-                reader.onload = function() {
-                    var text = reader.result.split(' ').filter(n => n).join(' ');
-                    var content = document.getElementById('file_content');
-                    content.value = text;
-                    parseCSVtoJSON.applyAsync([], seedTableData);
-                }
-                reader.readAsText(input.files[0]);
-
-            });
-            //busca los datos desde el appbase
-            $.appBaseService.getForms(function(result) {
-                var keys = Object.keys(result);
-                keys.forEach(key => {
-                    var drop_forms = document.getElementById('form_names');
-                    var option = document.createElement('option');
-                    option.text = key;
-                    drop_forms.add(option);
-                });
-            });
-
-        });
-
         $('#see_source_btn').on('click', function() {
             if(!$('#div_file_content').hasClass('in')) {
               $(this).children('span').removeClass('glyphicon-chevron-down');
@@ -236,14 +95,14 @@
               $(this).children('span').addClass('glyphicon-chevron-down');
             }
         } );
-
-
-
+        
+        $('#send_data_btn').on();
     </script>
 
     <script src="js/mocks.js"></script>
 
     <script src="js/test/appBaseServiceTest.js"></script>
+    <script src="js/csv_importer.js"></script>
 </body>
 
 </html>
