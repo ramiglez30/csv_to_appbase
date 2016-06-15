@@ -1,5 +1,6 @@
 $.extend({
     appBaseService: new function() {
+        var appBaseUrl = 'http://dev.synchronit.com/appbase-webconsole/json';
         var self = this;
         var formsArray = null;
         self.options = null;
@@ -64,7 +65,7 @@ $.extend({
                         var mappingPropertiesMap = getMappingPropertiesFormMap();
                         var mappingPropertiesArray = Array();
                         for (var index in mappingObj.mappingProperties) {
-                            var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.mappingProperties[index])
+                            var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.sourceName, mappingObj.mappingProperties[index])
                             mappingPropertiesArray.push(mappingPropertiesRow);
                         }
 
@@ -135,7 +136,7 @@ $.extend({
                         var dataColumn = dataRow[mappingItem.fileColumn.number];
 
                         if (mappingItem.formColumn.isReference) {
-                            var value = getValueForReferenceColumn(dataColumn);
+                            var value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
                             storeDataArray.splice(mappingItem.formColumn.order, 0, value);
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
@@ -143,7 +144,7 @@ $.extend({
 
                     } else {
                         if (mappingItem.formColumn.isReference) {
-                            var value = getValueForReferenceColumn('');
+                            var value = getValueForReferenceColumn(mappingItem.formColumn.type, '');
                             storeDataArray.splice(mappingItem.formColumn.order, 0, value);
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, ''));
@@ -163,30 +164,20 @@ $.extend({
                         endCallback();
                     }
                 } else {
-                    $.ajax({
-                        type: 'GET',
-                        url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                        cache: false,
-                        dataType: 'json',
-                        //async: false,
-                        data: {
-                            command: 'Create New ' + mappingObj.formName + '(' + formQuery + ')'
-                        },
-                        success: function(result) {
+                    var command = 'Create New ' + mappingObj.formName + '(' + formQuery + ')';
 
-                            if (callback != undefined && callback != null) {
-                                callback({
-                                    current: i,
-                                    total: dataLength
-                                });
-                            }
-                            if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
-                                endCallback();
-                            }
-                        },
-                        error: function() {
-
+                    serverRequest(command, function(result) {
+                        if (callback != undefined && callback != null) {
+                            callback({
+                                current: i,
+                                total: dataLength
+                            });
                         }
+                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                            endCallback();
+                        }
+                    }, function() {
+
                     });
 
                 }
@@ -194,16 +185,16 @@ $.extend({
         };
 
         /**Esta funcion permite construir la estructura para los campos que son referencia*/
-        var getValueForReferenceColumn = function(dataColumn) {
+        var getValueForReferenceColumn = function(dataType, dataColumn) {
             var value = '(';
             if (Array.isArray(dataColumn)) {
                 for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
                     value += indexRef > 0 ? ',' : '';
-                    value += '"' + dataColumn[indexRef] + '"';
+                    value += '"' + getStoreDataFormat(dataType, dataColumn[indexRef]) + '"';
                 }
                 value += ')';
             } else {
-                value += dataColumn + ')';
+                value += getStoreDataFormat(dataType, dataColumn) + ')';
             }
 
             return value;
@@ -224,6 +215,19 @@ $.extend({
 
         /**Esta funcion busca en el appBase todos los formularios,
          * y pasa al callback un objeto con la definicion de los formularios
+         * obj = {
+         * formName: '',
+         * properties: [
+         *      {
+         * name:'',
+         * type:'',
+         * order: -1,
+         * isReference: false,
+         * formReferenced: '',
+         * dataReferenced: ''
+         *      }
+         * ]
+         * }
          */
         self.getForms = function(getFormsCallback) {
 
@@ -242,20 +246,11 @@ $.extend({
                 parseFormRows(formsMock(), callback)
             } else {
                 formsArray = Array();
-                $.ajax({
-                    type: 'GET',
-                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                    cache: false,
-                    dataType: 'json',
-                    data: {
-                        command: 'SHOW FORMS'
-                    },
-                    success: function(result) {
-                        parseFormRows(result, callback)
-                    },
-                    error: function() {
+                var command = 'SHOW FORMS';
+                serverRequest(command, function(result) {
+                    parseFormRows(result, callback)
+                }, function() {
 
-                    }
                 });
             }
         };
@@ -321,10 +316,16 @@ $.extend({
                 default:
                     return value;
             }
-        }
+        };
 
-        /**Este metodo consulta el appBase y devuelve los datos de un formulario */
-        self.getFormData = function(formName, callback) {
+        /**Este metodo consulta el appBase y devuelve los datos de un formulario 
+         * filterPropertyArray = [{
+         *      fieldName: 'TEXT',
+         *      fieldValue: value,
+         *      fieldType: 'TEXT, NUMBER, BOOLEAN'
+         * }]
+         */
+        self.getFormData = function(formName, filterPropertyArray, callback) {
             if (formName == undefined || formName == null) {
                 return;
             }
@@ -334,30 +335,32 @@ $.extend({
                     callback(formDataMock(formName))
                 }
             } else {
-                $.ajax({
-                    type: 'GET',
-                    url: 'http://dev.synchronit.com/appbase-webconsole/json',
-                    cache: false,
-                    dataType: 'json',
-                    async: false,
-                    data: {
-                        command: 'Get ' + formName
-                    },
-                    success: function(result) {
-                        if (result.code == 100) {
-                            var headers = result.resultSet.headers;
-                            var rows = result.resultSet.rows;
-                            if (callback != undefined && callback != null) {
-                                callback(result.resultSet)
-                            }
-                        }
-                    },
-                    error: function() {
 
+                var command = 'GET ' + formName;
+
+                if (filterPropertyArray != undefined && Array.isArray(filterPropertyArray)) {
+                    command += ' with ';
+                    for (var index in filterPropertyArray) {
+                        if (index > 0) {
+                            command += ' and ';
+                        }
+                        command += filterPropertyArray[index].fieldName + ' = ' + getStoreDataFormat(filterPropertyArray[index].fieldType, filterPropertyArray[index].fieldValue)
                     }
+                }
+
+                serverRequest(command, function(result) {
+                    if (result.code == 100) {
+                        var headers = result.resultSet.headers;
+                        var rows = result.resultSet.rows;
+                        if (callback != undefined && callback != null) {
+                            callback(result.resultSet)
+                        }
+                    }
+                }, function(error) {
+
                 });
             }
-        }
+        };
 
         /**Este metodo comprueba si en los datos de un formulario ya existe el dato especificado.
          * requiere para su funcionamiento que se pasen los datos del formulario
@@ -405,7 +408,7 @@ $.extend({
             }
 
             return found == true ? index : -1;
-        }
+        };
 
         /**** Util for Mapping ****/
         /** Este metodo construye la estructura de Rows para el formulario de Mapping */
@@ -413,7 +416,7 @@ $.extend({
             return [
                 [mappingObj.sourceName, mappingObj.fileType, mappingObj.formName, mappingObj.isFirstColumnHeading]
             ];
-        }
+        };
 
         /** Este metodo construye la estructura del objeto de mapping para el formulario de Mapping */
         var getMappingFormMap = function() {
@@ -428,7 +431,10 @@ $.extend({
                     formColumn: {
                         name: 'SOURCE_NAME',
                         type: 'TEXT',
-                        order: 0
+                        order: 0,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }, {
                     fileColumn: {
@@ -438,7 +444,10 @@ $.extend({
                     formColumn: {
                         name: 'FILE_TYPE',
                         type: 'TEXT',
-                        order: 1
+                        order: 1,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }, {
                     fileColumn: {
@@ -448,7 +457,10 @@ $.extend({
                     formColumn: {
                         name: 'FORM_NAME',
                         type: 'TEXT',
-                        order: 2
+                        order: 2,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }, {
                     fileColumn: {
@@ -458,11 +470,14 @@ $.extend({
                     formColumn: {
                         name: 'IS_FIRST_COL_HEAD',
                         type: 'BOOLEAN',
-                        order: 3
+                        order: 3,
+                        isReference: false,
+                        formReferenced: null,
+                        dataReferenced: null
                     }
                 }]
             }
-        }
+        };
 
         /** Este metodo construye la estructura del objeto de mapping para el formulario de MappingProperties */
         var getMappingPropertiesFormMap = function() {
@@ -559,9 +574,45 @@ $.extend({
                         isIgnored: false
                     },
                     formColumn: {
-                        name: 'SOURCE_NAME',
-                        type: 'NUMBER',
+                        name: 'IS_REFERENCE',
+                        type: 'BOOLEAN',
                         order: 7,
+                        isReference: false,
+                        dataReference: null
+                    }
+                }, {
+                    fileColumn: {
+                        number: 8,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'FORM_REFERENCED',
+                        type: 'TEXT',
+                        order: 8,
+                        isReference: false,
+                        dataReference: null
+                    }
+                }, {
+                    fileColumn: {
+                        number: 9,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'DATA_REFERENCED',
+                        type: 'TEXT',
+                        order: 9,
+                        isReference: false,
+                        dataReference: null
+                    }
+                }, {
+                    fileColumn: {
+                        number: 10,
+                        isIgnored: false
+                    },
+                    formColumn: {
+                        name: 'SOURCE_NAME',
+                        type: 'TEXT',
+                        order: 10,
                         isReference: true,
                         dataReference: {
                             formName: 'MAPPING',
@@ -570,10 +621,10 @@ $.extend({
                     }
                 }]
             }
-        }
+        };
 
         /** Este metodo construye la estructura de Rows para el formulario de MappingProperties */
-        var getMappingPropertiesRow = function(propertyObj) {
+        var getMappingPropertiesRow = function(mappingName, propertyObj) {
 
             return [
                 propertyObj.fileColumn.colStart,
@@ -584,15 +635,127 @@ $.extend({
                 propertyObj.formColumn.type,
                 propertyObj.formColumn.order,
                 propertyObj.formColumn.isReference,
-                propertyObj.formColumn.reference
+                propertyObj.formColumn.formReferenced,
+                propertyObj.formColumn.dataReferenced,
+                mappingName
             ];
+        };
+
+        /**Este metodo consulta todas las definiciones de mapping que se han guardado en el appBase */
+        self.getMappings = function(callback) {
+            self.getFormData('MAPPING', null, function(resultSet) {
+                /*if (result.code != 100) {
+                    return;
+                }*/
+
+                var headers = resultSet.headers;
+                var rows = resultSet.rows;
+                var mapingArray = Array();
+                for (var index in rows) {
+                    //Aqui se puede consultar MAPPING_PROPERTIES para obtener las properties de cada definicion
+                    var filterArray = [{
+                        fieldName: 'MAPPING.SOURCE_NAME',
+                        fieldValue: rows[index][0],
+                        fieldType: 'TEXT'
+                    }]
+                    self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult) {
+                        var mappingPropertiesResult = filterResult.rows;
+                        var mappingObj = getMappingObj(rows[index], filterResult.rows);
+
+                        mapingArray.push(mappingObj);
+
+                        if (index == rows.length) {
+                            if (callback != undefined && callback != null) {
+                                callback(mapingArray);
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        /** Esta funcion construye el objeto de mapping */
+        var getMappingObj = function(mappingRow, mappingPropertyRows) {
+            var mappingProperties = Array();
+            for (var filterIndex in mappingPropertyRows) {
+                var property = {
+                    fileColumn: {
+                        colStart: mappingPropertyRows[filterIndex][0],
+                        colEnd: mappingPropertyRows[filterIndex][1],
+                        colIndex: mappingPropertyRows[filterIndex][2],
+                        isIgnored: mappingPropertyRows[filterIndex][3],
+                    },
+                    formColumn: {
+                        name: mappingPropertyRows[filterIndex][4],
+                        type: mappingPropertyRows[filterIndex][5],
+                        order: mappingPropertyRows[filterIndex][6],
+                        isReference: mappingPropertyRows[filterIndex][7],
+                        reference: {
+                            formName: mappingPropertyRows[filterIndex][8],
+                            fieldName: mappingPropertyRows[filterIndex][9]
+                        }
+                    }
+                }
+
+                mappingProperties.push(property);
+            }
+
+            var mappingObj = {
+                sourceName: mappingRow[0],
+                fileType: mappingRow[1],
+                formName: mappingRow[2],
+                isFirstColumnHeading: mappingRow[3],
+                mappingProperties: mappingProperties
+            }
         }
+
+        /**Este metodo dado el nombre o identificador de una definicion de maping obtiene toda la definicion*/
+        self.getMapping = function(mappingName, callback) {
+            var filterArray = [{
+                fieldName: 'SOURCE_NAME',
+                fieldValue: mappingName
+            }]
+            self.getFormData('MAPPING', filterArray, function(resultSet) {
+                var headers = resultSet.headers;
+                var rows = resultSet.rows;
+                if (rows.length > 0) {
+                    var filterArray = [{
+                        fieldName: 'MAPPING.SOURCE_NAME',
+                        fieldValue: rows[0][0],
+                        fieldType: 'TEXT'
+                    }];
+                    self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult) {
+                        var mappingPropertiesResult = filterResult.rows;
+                        var mappingObj = getMappingObj(rows[index], filterResult.rows);
+
+                        if (callback != undefined && callback != null) {
+                            callback(mappingObj);
+                        }
+                    });
+                }
+            });
+        };
+
+        /** Este metodo es generico sirve para hacer las request al application base*/
+        var serverRequest = function(commandText, successCallback, errorCallback) {
+            $.ajax({
+                type: 'GET',
+                url: appBaseUrl,
+                cache: false,
+                dataType: 'json',
+                data: {
+                    command: commandText
+                },
+                success: successCallback,
+                error: errorCallback
+            });
+        };
     }
 });
 
 $(function() {
     $.appBaseService.initialize({
         requestForm: true,
-        useMock: true
+        useMock: false
     });
 })

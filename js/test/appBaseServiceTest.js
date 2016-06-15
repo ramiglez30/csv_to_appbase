@@ -1,7 +1,7 @@
 function initServiceTest() {
     $.appBaseService.initialize({
         requestForm: true,
-        useMock: true,
+        useMock: false,
         requestFormCallback: function(array) {
             if (array != null) {
                 console.log('success initialize');
@@ -22,7 +22,10 @@ function saveDataTest() {
             formColumn: {
                 name: 'field1',
                 type: 'TEXT',
-                order: 0
+                order: 0,
+                isReference: false,
+                formReferenced: null,
+                dataReferenced: null
             }
         }, {
             fileColumn: {
@@ -32,7 +35,10 @@ function saveDataTest() {
             formColumn: {
                 name: 'field2',
                 type: 'NUMBER',
-                order: 1
+                order: 1,
+                isReference: false,
+                formReferenced: null,
+                dataReferenced: null
             }
         }, {
             fileColumn: {
@@ -42,7 +48,10 @@ function saveDataTest() {
             formColumn: {
                 name: 'field3',
                 type: 'BOOLEAN',
-                order: 2
+                order: 2,
+                isReference: false,
+                formReferenced: null,
+                dataReferenced: null
             }
         }]
     }
@@ -59,7 +68,7 @@ function saveDataTest() {
 
 function saveMappingTest() {
     var mappingObj = {
-        sourceName: 'credit-suize3',
+        sourceName: 'credit-suize1',
         fileType: 'csv',
         formName: 'T_TEST',
         isFirstColumnHeading: false,
@@ -75,7 +84,8 @@ function saveMappingTest() {
                 type: 'TEXT',
                 order: 0,
                 isReference: false,
-                reference: null
+                formReferenced: null,
+                dataReferenced: null
             }
         }, {
             fileColumn: {
@@ -89,7 +99,8 @@ function saveMappingTest() {
                 type: 'NUMBER',
                 order: 1,
                 isReference: false,
-                reference: null
+                formReferenced: null,
+                dataReferenced: null
             }
         }, {
             fileColumn: {
@@ -103,7 +114,8 @@ function saveMappingTest() {
                 type: 'BOOLEAN',
                 order: 2,
                 isReference: false,
-                reference: null
+                formReferenced: null,
+                dataReferenced: null
             }
         }]
     }
@@ -125,10 +137,18 @@ function existDataInFormTest() {
     })
 }
 
+function getMappingsTest() {
+    $.appBaseService.getMappings(function(mappingArray) {
+        console.log(mappingArray);
+
+    })
+}
+
 $(document).ready(function() {
     initServiceTest();
     //saveDataTest();
-    saveMappingTest();
+    //saveMappingTest();
     //getFormDataTest();
     //existDataInFormTest();
+    getMappingsTest();
 });
