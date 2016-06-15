@@ -231,7 +231,7 @@ $.extend({
          */
         self.getForms = function(getFormsCallback) {
 
-            if (formsArray == null) {
+            if (formsArray == null || formsArray.length == 0) {
                 requestForms(getFormsCallback);
             } else {
                 getFormsCallback(formsArray);
