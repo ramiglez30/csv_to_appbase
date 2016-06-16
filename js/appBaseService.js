@@ -55,7 +55,7 @@ $.extend({
         self.saveMapping = function(mappingObj, callback) {
 
             /*************BEGIN FUNCTION**************/
-            self.getFormData('MAPPING', function(resultSet) {
+            self.getFormData('MAPPING', null, function(resultSet) {
 
                 if (!self.existDataInForm('SOURCE_NAME', mappingObj.sourceName, resultSet)) {
                     var mappingFormMap = getMappingFormMap();
@@ -173,7 +173,7 @@ $.extend({
                                 total: dataLength
                             });
                         }
-                        if (i == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
+                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
                             endCallback();
                         }
                     }, function() {
@@ -661,8 +661,8 @@ $.extend({
                 propertyObj.formColumn.type,
                 propertyObj.formColumn.order,
                 propertyObj.formColumn.isReference,
-                propertyObj.formColumn.reference.formName,
-                propertyObj.formColumn.reference.fieldName,
+                propertyObj.formColumn.reference != null ? propertyObj.formColumn.reference.formName : null,
+                propertyObj.formColumn.reference != null ? propertyObj.formColumn.reference.fieldName : null,
                 mappingName
             ];
         };

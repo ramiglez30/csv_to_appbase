@@ -68,7 +68,7 @@ function saveDataTest() {
 
 function saveMappingTest() {
     var mappingObj = {
-        sourceName: 'credit-suize1',
+        sourceName: 'credit-suize9',
         fileType: 'csv',
         formName: 'T_TEST',
         isFirstColumnHeading: false,
@@ -76,7 +76,7 @@ function saveMappingTest() {
             fileColumn: {
                 colStart: null,
                 colEnd: null,
-                colIndex: 0,
+                index: 0,
                 isIgnored: false
             },
             formColumn: {
@@ -84,14 +84,13 @@ function saveMappingTest() {
                 type: 'TEXT',
                 order: 0,
                 isReference: false,
-                formReferenced: null,
-                dataReferenced: null
+                reference: null
             }
         }, {
             fileColumn: {
                 colStart: null,
                 colEnd: null,
-                colIndex: 1,
+                index: 1,
                 isIgnored: false
             },
             formColumn: {
@@ -99,14 +98,13 @@ function saveMappingTest() {
                 type: 'NUMBER',
                 order: 1,
                 isReference: false,
-                formReferenced: null,
-                dataReferenced: null
+                reference: null
             }
         }, {
             fileColumn: {
                 colStart: null,
                 colEnd: null,
-                colIndex: 2,
+                index: 2,
                 isIgnored: false
             },
             formColumn: {
@@ -114,8 +112,7 @@ function saveMappingTest() {
                 type: 'BOOLEAN',
                 order: 2,
                 isReference: false,
-                formReferenced: null,
-                dataReferenced: null
+                reference: null
             }
         }]
     }
@@ -147,8 +144,8 @@ function getMappingsTest() {
 $(document).ready(function() {
     //initServiceTest();
     //saveDataTest();
-    //saveMappingTest();
+    saveMappingTest();
     //getFormDataTest();
     //existDataInFormTest();
-    getMappingsTest();
+    //getMappingsTest();
 });
