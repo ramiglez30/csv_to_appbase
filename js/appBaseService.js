@@ -36,7 +36,7 @@ $.extend({
          *            fileColumn: {
          *                colStart: -1,
          *                colEnd: -1,
-         *                colIndex: -1,
+         *                index: -1,
          *                isIgnored: false
          *            },
          *            formColumn: {
@@ -46,7 +46,7 @@ $.extend({
          *                isReference: false,
          *                reference:{
          *                    formName:'',
-         *                    colums: []
+         *                    fieldName:'' 
          *                    }
          *            }
          *        }]
@@ -133,7 +133,7 @@ $.extend({
                     var mappingItem = dataMapping[item];
                     if (!mappingItem.fileColumn.isIgnored) {
 
-                        var dataColumn = dataRow[mappingItem.fileColumn.number];
+                        var dataColumn = dataRow[mappingItem.fileColumn.index];
 
                         if (mappingItem.formColumn.isReference) {
                             var value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
@@ -160,7 +160,7 @@ $.extend({
                             total: dataLength
                         });
                     }
-                    if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                    if (i == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
                         endCallback();
                     }
                 } else {
@@ -173,7 +173,7 @@ $.extend({
                                 total: dataLength
                             });
                         }
-                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                        if (i == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
                             endCallback();
                         }
                     }, function() {
@@ -425,7 +425,9 @@ $.extend({
                 isFirstColumnHeading: false,
                 dataMapping: [{
                     fileColumn: {
-                        number: 0,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 0,
                         isIgnored: false
                     },
                     formColumn: {
@@ -433,12 +435,13 @@ $.extend({
                         type: 'TEXT',
                         order: 0,
                         isReference: false,
-                        formReferenced: null,
-                        dataReferenced: null
+                        referenced: null
                     }
                 }, {
                     fileColumn: {
-                        number: 1,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 1,
                         isIgnored: false
                     },
                     formColumn: {
@@ -446,12 +449,13 @@ $.extend({
                         type: 'TEXT',
                         order: 1,
                         isReference: false,
-                        formReferenced: null,
-                        dataReferenced: null
+                        referenced: null
                     }
                 }, {
                     fileColumn: {
-                        number: 2,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 2,
                         isIgnored: false
                     },
                     formColumn: {
@@ -459,12 +463,13 @@ $.extend({
                         type: 'TEXT',
                         order: 2,
                         isReference: false,
-                        formReferenced: null,
-                        dataReferenced: null
+                        referenced: null
                     }
                 }, {
                     fileColumn: {
-                        number: 3,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 3,
                         isIgnored: false
                     },
                     formColumn: {
@@ -472,8 +477,7 @@ $.extend({
                         type: 'BOOLEAN',
                         order: 3,
                         isReference: false,
-                        formReferenced: null,
-                        dataReferenced: null
+                        referenced: null
                     }
                 }]
             }
@@ -486,7 +490,9 @@ $.extend({
                 isFirstColumnHeading: false,
                 dataMapping: [{
                     fileColumn: {
-                        number: 0,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 0,
                         isIgnored: false
                     },
                     formColumn: {
@@ -494,11 +500,13 @@ $.extend({
                         type: 'NUMBER',
                         order: 0,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 1,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 1,
                         isIgnored: false
                     },
                     formColumn: {
@@ -506,11 +514,13 @@ $.extend({
                         type: 'NUMBER',
                         order: 1,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 2,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 2,
                         isIgnored: false
                     },
                     formColumn: {
@@ -518,11 +528,13 @@ $.extend({
                         type: 'NUMBER',
                         order: 2,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 3,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 3,
                         isIgnored: false
                     },
                     formColumn: {
@@ -530,11 +542,13 @@ $.extend({
                         type: 'BOOLEAN',
                         order: 3,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 4,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 4,
                         isIgnored: false
                     },
                     formColumn: {
@@ -542,11 +556,13 @@ $.extend({
                         type: 'TEXT',
                         order: 4,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 5,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 5,
                         isIgnored: false
                     },
                     formColumn: {
@@ -554,11 +570,13 @@ $.extend({
                         type: 'TEXT',
                         order: 5,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 6,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 6,
                         isIgnored: false
                     },
                     formColumn: {
@@ -566,11 +584,13 @@ $.extend({
                         type: 'NUMBER',
                         order: 6,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 7,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 7,
                         isIgnored: false
                     },
                     formColumn: {
@@ -578,11 +598,13 @@ $.extend({
                         type: 'BOOLEAN',
                         order: 7,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 8,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 8,
                         isIgnored: false
                     },
                     formColumn: {
@@ -590,11 +612,13 @@ $.extend({
                         type: 'TEXT',
                         order: 8,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 9,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 9,
                         isIgnored: false
                     },
                     formColumn: {
@@ -602,11 +626,13 @@ $.extend({
                         type: 'TEXT',
                         order: 9,
                         isReference: false,
-                        dataReference: null
+                        reference: null
                     }
                 }, {
                     fileColumn: {
-                        number: 10,
+                        colStart: -1,
+                        colEnd: -1,
+                        index: 10,
                         isIgnored: false
                     },
                     formColumn: {
@@ -614,9 +640,9 @@ $.extend({
                         type: 'TEXT',
                         order: 10,
                         isReference: true,
-                        dataReference: {
+                        reference: {
                             formName: 'MAPPING',
-                            colName: 'SOURCE_NAME'
+                            fieldName: 'SOURCE_NAME'
                         }
                     }
                 }]
@@ -629,14 +655,14 @@ $.extend({
             return [
                 propertyObj.fileColumn.colStart,
                 propertyObj.fileColumn.colEnd,
-                propertyObj.fileColumn.colIndex,
+                propertyObj.fileColumn.index,
                 propertyObj.fileColumn.isIgnored,
                 propertyObj.formColumn.name,
                 propertyObj.formColumn.type,
                 propertyObj.formColumn.order,
                 propertyObj.formColumn.isReference,
-                propertyObj.formColumn.formReferenced,
-                propertyObj.formColumn.dataReferenced,
+                propertyObj.formColumn.reference.formName,
+                propertyObj.formColumn.reference.fieldName,
                 mappingName
             ];
         };
@@ -664,7 +690,7 @@ $.extend({
 
                         mapingArray.push(mappingObj);
 
-                        if (index == rows.length) {
+                        if (index == rows.length - 1) {
                             if (callback != undefined && callback != null) {
                                 callback(mapingArray);
                             }
@@ -682,7 +708,7 @@ $.extend({
                     fileColumn: {
                         colStart: mappingPropertyRows[filterIndex][0],
                         colEnd: mappingPropertyRows[filterIndex][1],
-                        colIndex: mappingPropertyRows[filterIndex][2],
+                        index: mappingPropertyRows[filterIndex][2],
                         isIgnored: mappingPropertyRows[filterIndex][3],
                     },
                     formColumn: {
@@ -707,6 +733,8 @@ $.extend({
                 isFirstColumnHeading: mappingRow[3],
                 mappingProperties: mappingProperties
             }
+
+            return mappingObj;
         }
 
         /**Este metodo dado el nombre o identificador de una definicion de maping obtiene toda la definicion*/

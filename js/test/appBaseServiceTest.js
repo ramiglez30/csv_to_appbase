@@ -145,7 +145,7 @@ function getMappingsTest() {
 }
 
 $(document).ready(function() {
-    initServiceTest();
+    //initServiceTest();
     //saveDataTest();
     //saveMappingTest();
     //getFormDataTest();
