@@ -1,5 +1,29 @@
 $.extend({
-    json_array: []
+    json_array: [],
+     mappingObj: {
+         sourceName: '',
+         fileType: '',
+         formName: '',
+         isFirstColumnHeading: false,
+         mappingProperties: [{
+         fileColumn: {
+                    colStart: -1,
+                    colEnd: -1,
+                         index: -1,
+                         isIgnored: false
+                     },
+                     formColumn: {
+                         name: '',
+                         type: '',
+                         order: -1,
+                         isReference: false,
+                         reference:{
+                             formName:'',
+                             fieldName:'' 
+                             }
+                     }
+                 }]
+             }
 });
 
 $(document).ready(function() {
@@ -49,8 +73,9 @@ $(document).ready(function() {
 
     //event handler para el select form
     $('select#form_names').on('change',function() {
-         $.appBaseService.getForms((result) => { formObject = result[this.options[this.selectedIndex].value]} );
-         seedHeadingMaps();
+         $.appBaseService.getForms((result) => {formObject = result[this.options[this.selectedIndex].value];
+                                                seedHeadingMaps();});
+         
      });
 
 
@@ -69,9 +94,10 @@ $(document).ready(function() {
            var row = $('<tr></tr>');
            var emptycell = $('<th></th>');
            emptycell.appendTo(row);
-        for(var j = 0; j<columnCount(); j++){
+           let count = columnCount();
+        for(var j = 0; j<count; j++){
             var headingCell = $('<th></th>');
-            var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control'});
+            var select = $('<select></select>', {id: "select_"+j.toString(), 'class':'form-control form_columns'});
             var ignore = $('<option>ignore</option>', {'data-value': 'ignore'});
             ignore.appendTo(select);
             for(var k = 0; k< columnProperties.length; k++){
@@ -115,6 +141,7 @@ $(document).ready(function() {
             parseCSVtoJSON.applyAsync([text], seedTableData);
         }
         reader.readAsText(input.files[0]);
+        $.mappingObj.fileType = input.files[0].type;
 
     });
     //busca los datos desde el appbase
@@ -127,5 +154,9 @@ $(document).ready(function() {
             drop_forms.add(option);
         });
     });
+   
+ 
 
 });
+
+  

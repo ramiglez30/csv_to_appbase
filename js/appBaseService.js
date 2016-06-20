@@ -69,8 +69,10 @@ $.extend({
                             mappingPropertiesArray.push(mappingPropertiesRow);
                         }
 
-                        self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
-
+                        self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, null, function(data) {
+                            if (callback){
+                                callback();
+                            }
                         })
 
                     });

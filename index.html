@@ -28,22 +28,23 @@
             </div>
             <div class="panel-body">
 
-                <div>
-                  <div class="row">
-                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                      <input id="csv_file_input" type="file" accept=".csv" />
+                 <div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                            <input id="csv_file_input" type="file" accept=".csv" />
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 text-right">
+                            <a id="see_source_btn" class="btn btn-primary" role="button" data-toggle="collapse" href="#div_file_content" aria-expanded="false"
+                                aria-controls="div_file_content">See source file content &nbsp;<span class=" glyphicon glyphicon-chevron-down"></span></a>
+                        </div>
                     </div>
-                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 text-right">
-                        <a id="see_source_btn" class="btn btn-primary" role="button" data-toggle="collapse" href="#div_file_content" aria-expanded="false" aria-controls="div_file_content">See source file content &nbsp;<span class=" glyphicon glyphicon-chevron-down"></span></a>
-                    </div>
-                  </div>
                     <br />
 
-                  <div id="div_file_content" class="collapse">
+                    <div id="div_file_content" class="collapse">
                         <textarea id="file_content" class="form-control" style="min-height:100px"></textarea>
                     </div>
 
-<br>
+                    <br>
 
                 </div>
 
@@ -52,9 +53,11 @@
                     <div class="panel-heading form-group">
                         <h3>Mapping</h3>
                         <label>Select FORM to send data:</label>
-                        <select class="form-control form-control" id="form_names">
+                        <select class="form-control form-control" style='max-width:500px;' id="form_names">
                            <option id="0">Select...</option>
                         </select>
+                        <br>
+                        <input id="first_row_checker" type="checkbox" text="" /> <span> Is first row columns names?</span>
                     </div>
                     <div id="table_container" class="panel-body">
                         <table id="table_mapping" class="table">
@@ -68,11 +71,15 @@
                         </table>
                        
                     </div>
-                    <div style="margin:20px;">
-                        <button id="send_data_btn" class="btn btn-primary" >Send Data to App Base</button>
-                    </div>
+                  
+                   
                      
                 </div>
+            </div>
+            <div class="panel-footer">
+                        <label>Write a name for this mapping.</label><br>
+                        <input id="mapNameText" type="text" class="form-control" style='max-width:500px;' required/><br>
+                        <button id="send_data_btn" class="btn btn-primary" >Send Data to App Base</button>
             </div>
 
         </div>
@@ -96,7 +103,55 @@
             }
         } );
         
-        $('#send_data_btn').on();
+            //prepara el objeto mapping para enviar 
+   var prepData = function() {
+       $.mappingObj.formName = $('select#form_names').children('option:selected').val();
+       $.mappingObj.isFirstColumnHeading = $('#first_row_checker').is(':checked');
+       $.mappingObj.sourceName = $('#mapNameText').val();
+       let selectedOptions = $('select.form_columns').children('option:selected');
+       $.mappingObj.mappingProperties =[];
+       if (selectedOptions.length > 0 ){
+           selectedOptions.each(function(item){
+                let fileColumn =  {colStart: 0, colEnd: 0, index: 0, isIgnored: false};
+                let formColumn = {name: '', type: '', order: 0, isReference: false, reference:{ formName:'', fieldName:'' }};
+                let map = {fileColumn: fileColumn, formColumn: formColumn};
+                let counting = 0;
+                
+                map.fileColumn.index = item;
+               if ($(this).val() == 'ignore'){
+                   map.fileColumn.isIgnored = true;
+               } else { 
+                   map.formColumn.name = $(this).attr('data-name');
+                   map.formColumn.type = $(this).attr('data-type');
+                   map.formColumn.order = $(this).attr('data-order');
+                   map.formColumn.isReference = $(this).attr('data-isreference')=='true';
+                   if (map.formColumn.isReference){
+                       map.formColumn.reference.formName = $(this).attr('data-formreferenced');
+                       map.formColumn.reference.fieldName = $(this).attr('data-datareferenced');
+                   } 
+                   counting++;
+               } 
+               $.mappingObj.mappingProperties.push(map);
+              
+           });
+           $.appBaseService.saveMapping($.mappingObj, function(){
+               alert('Map Saved');
+                $.appBaseService.saveFormData($.mappingObj, $.json_array.data, () => {alert('array item saved')}, () => {});
+            });
+          
+       } else {
+           alert('Ups, seems like you haven\'t choosed any Form to map');
+           return;
+       }
+       
+        
+    }
+        
+        $('#send_data_btn').on('click', function() {
+            prepData();
+        });
+        
+    
     </script>
 
     <script src="js/mocks.js"></script>
