@@ -71,7 +71,7 @@ $.extend({
 
                         self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
 
-                        })
+                        }, callback)
 
                     });
                 }
