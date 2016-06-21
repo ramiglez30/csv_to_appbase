@@ -89,9 +89,11 @@ $.extend({
          *        fileType: '',
          *        formName: '',
          *        isFirstColumnHeading: false,
-         *        dataMapping: [{
+         *        mappingProperties: [{
          *            fileColumn: {
-         *                number: -1,
+         *                colStart: -1,
+         *                colEnd: -1,
+         *                index: -1,
          *                isIgnored: false
          *            },
          *            formColumn: {
@@ -101,7 +103,7 @@ $.extend({
          *                isReference: false,
          *                reference:{
          *                    formName:'',
-         *                     colums:[]
+         *                     fieldName:''
          *                   }
          *            }
          *        }]
@@ -122,7 +124,7 @@ $.extend({
         self.saveFormData = function(mappingObj, dataArray, callback, endCallback) {
 
             var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
-            var dataMapping = mappingObj.dataMapping;
+            var dataMapping = mappingObj.mappingProperties;
             var dataLength = dataArray.length;
 
             for (var i = isFirstColumnHeading == true ? 1 : 0; i < dataArray.length; i++) {
@@ -423,7 +425,7 @@ $.extend({
             return {
                 formName: 'MAPPING',
                 isFirstColumnHeading: false,
-                dataMapping: [{
+                mappingProperties: [{
                     fileColumn: {
                         colStart: -1,
                         colEnd: -1,
@@ -488,7 +490,7 @@ $.extend({
             return {
                 formName: 'MAPPING_PROPERTIES',
                 isFirstColumnHeading: false,
-                dataMapping: [{
+                mappingProperties: [{
                     fileColumn: {
                         colStart: -1,
                         colEnd: -1,
