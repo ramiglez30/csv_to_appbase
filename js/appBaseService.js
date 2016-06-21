@@ -52,7 +52,7 @@ $.extend({
          *        }]
          *    }
          */
-        self.saveMapping = function(mappingObj, callback) {
+        self.saveMapping = function(mappingObj, endCallback) {
 
             /*************BEGIN FUNCTION**************/
             self.getFormData('MAPPING', null, function(resultSet) {
@@ -71,7 +71,7 @@ $.extend({
 
                         self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
 
-                        }, callback)
+                        }, endCallback)
 
                     });
                 }
