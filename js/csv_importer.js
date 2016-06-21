@@ -120,7 +120,11 @@ $(document).ready(function() {
 
    var columnCount = function() {
      if ($.json_array != null){
-        return $.json_array.data[1].length;
+         if($.json_array.data != null){
+              var max;
+              max =  Math.max.apply(null,$.json_array.data.map(item => item.length));
+              return max;
+         }  else {return 0;}
      } else { return 0;}
    };
     var rowCount = function() {
