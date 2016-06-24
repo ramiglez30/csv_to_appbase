@@ -1,5 +1,6 @@
 $.extend({
     json_array: [],
+    selectedForm: null,
      mappingObj: {
          sourceName: '',
          fileType: '',
@@ -74,6 +75,7 @@ $(document).ready(function() {
     //event handler para el select form
     $('select#form_names').on('change',function() {
          $.appBaseService.getForms((result) => {formObject = result[this.options[this.selectedIndex].value];
+                                                $.selectedForm = formObject;
                                                 seedHeadingMaps();});
          
      });

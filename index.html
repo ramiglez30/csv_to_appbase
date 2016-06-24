@@ -134,6 +134,7 @@
        let selectedOptions = $('select.form_columns').children('option:selected');
        $.mappingObj.mappingProperties =[];
        if (selectedOptions.length > 0 ){
+           //pushing selected columns
            selectedOptions.each(function(item){
                 let fileColumn =  {colStart: 0, colEnd: 0, index: 0, isIgnored: false};
                 let formColumn = {name: '', type: '', order: 0, isReference: false, reference:{ formName:'', fieldName:'' }};
@@ -157,6 +158,26 @@
                $.mappingObj.mappingProperties.push(map);
               
            });
+
+           //pushing missing data-columns
+           let mapped = $.mappingObj.mappingProperties.map(item => item.formColumn.name);
+           let nonMapProperties = $.selectedForm.properties.filter(item => {
+               return !mapped.includes(item.name);
+           });
+
+           $(nonMapProperties).each(function(i) {
+               let fileColumn =  {colStart: 0, colEnd: 0, index: 0, isIgnored: true};
+                let formColumn = {name: nonMapProperties[i].name, type: nonMapProperties[i].type, order: nonMapProperties[i].order, isReference: nonMapProperties[i].isReference == "true", reference:{ formName:'', fieldName:'' }};
+                if(nonMapProperties[i].isReference == "true"){
+                    formColumn.reference.formName = nonMapProperties[i].formReferenced;
+                    formColumn.reference.fieldName = nonMapProperties[i].dataReferenced;
+                }
+                let map = {fileColumn: fileColumn, formColumn: formColumn};
+                $.mappingObj.mappingProperties.push(map);
+
+           });
+
+
            
            let total = $.json_array.data.length + 1;
            let progressValue = 0;
@@ -165,10 +186,10 @@
            
            $.appBaseService.saveMapping($.mappingObj, function(){
                $('#sendingProgress').attr('value', progressValue++);
-                $.appBaseService.saveFormData($.mappingObj, $.json_array.data, ()=> {
+                $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
                     $('#sendingProgress').attr('value', progressValue++);
                 }, () => {
-                    alert('listo!');
+                    //alert('listo!');
                 });
             });
           
