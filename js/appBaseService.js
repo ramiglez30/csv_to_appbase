@@ -315,6 +315,8 @@ $.extend({
                     return value;
                 case 'IMAGE':
                     return '"' + value + '"';
+                case 'DATE':
+                    return '"' + value + '"';
                 default:
                     return value;
             }
