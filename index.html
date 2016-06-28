@@ -142,9 +142,7 @@
                 let counting = 0;
                 
                 map.fileColumn.index = item;
-               if ($(this).val() == 'ignore'){
-                   map.fileColumn.isIgnored = true;
-               } else { 
+               if (!$(this).val() == 'ignore'){                   
                    map.formColumn.name = $(this).attr('data-name');
                    map.formColumn.type = $(this).attr('data-type');
                    map.formColumn.order = $(this).attr('data-order');
@@ -153,9 +151,10 @@
                        map.formColumn.reference.formName = $(this).attr('data-formreferenced');
                        map.formColumn.reference.fieldName = $(this).attr('data-datareferenced');
                    } 
+                   $.mappingObj.mappingProperties.push(map);
                    counting++;
                } 
-               $.mappingObj.mappingProperties.push(map);
+               
               
            });
 
