@@ -126,6 +126,7 @@ $.extend({
             var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
             var dataMapping = mappingObj.mappingProperties;
             var dataLength = dataArray.length;
+            var multiRefArr = findSameReferenceForm(dataMapping);
 
             for (var i = isFirstColumnHeading == true ? 1 : 0; i < dataArray.length; i++) {
                 var storeDataArray = Array();
@@ -134,12 +135,36 @@ $.extend({
                 for (var item in dataMapping) {
                     var mappingItem = dataMapping[item];
                     if (!mappingItem.fileColumn.isIgnored) {
-
+                        /** Aqui tener en cuenta que en el array de maping pueden venir 2 items que sean parte de 
+                         * la misma columna en el formulario debedo a que esa columna es una referencia doble por lo
+                         * que al crear el comando del objeto esa columna se crea asi: (,). En el algoritmo actual el mapping 
+                         * y los datos vienen en indices separados eso implica que se tengan que unir y garantizar 
+                         * que no se repitan en el ciclo cuando se itere hacia un indice superior.
+                         * VARIANTES
+                         * 1- Detectar cuales de los items en el maping son columnas referencias DOBLES. En el ciclo tener
+                         * esta caracteristica en cuenta para agrupar esos items e ignorarlos en posteriores iteraciones
+                         * 
+                         */
                         var dataColumn = dataRow[mappingItem.fileColumn.index];
 
                         if (mappingItem.formColumn.isReference) {
-                            var value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
+                            let multiRefItem = multiRefArr.length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
+                            let value = null;
+                            // let isSecond = 
+                            if (multiRefItem != null && multiRefItem != undefined) {
+                                dataColumn = Array();
+                                for (let multiItemIndex in multiRefItem) {
+                                    dataColumn.push(multiRefItem[multiItemIndex].fileColumn.index)
+                                }
+                                value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
+
+                            } else {
+
+                                value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
+                            }
+
                             storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
                         }
@@ -200,6 +225,34 @@ $.extend({
             }
 
             return value;
+        }
+
+        /**Esta funcion busca en el mapping si existe otra referencia al mismo form y devuelve
+         * la posicion en el mapping que ocupa */
+        var findSameReferenceForm = function(dataMapping) {
+            let multiReferences = Array();
+            let filterRef = dataMapping.filter(item => item.formColumn.isReference == true);
+
+            for (let i = 0; i < filterRef.length - 1; i++) {
+
+                for (let j = i + 1; j < filterRef.length; j++) {
+                    if (filterRef[i].formColumn.name == filterRef[j].formColumn.name) {
+                        let exist = multiReferences[filterRef[i].formColumn.name];
+                        if (exist == undefined) {
+                            multiReferences[filterRef[i].formColumn.name] = [filterRef[i], filterRef[j]];
+                        } else {
+                            multiReferences[filterRef[i].formColumn.name].push(filterRef[j]);
+                        }
+                    }
+                }
+            }
+            return multiReferences;
+        }
+
+        var isReference = function(item) {
+            if (item.formColumn.isReference)
+                return true;
+            return false;
         }
 
         /**Esta funcion busca en el appBase si existe el formulario,
