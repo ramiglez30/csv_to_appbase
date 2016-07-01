@@ -9,13 +9,13 @@
 
     <link href="css/csv_importer.css" rel="stylesheet" />
     <script>
-    Function.prototype.applyAsync = function(params, cb){
-      var function_context = this;
-      setTimeout(function(){
-          var val = function_context.apply(this, params);
-          if(cb) cb(val);
-      }, 0);
-    };
+        Function.prototype.applyAsync = function(params, cb) {
+            var function_context = this;
+            setTimeout(function() {
+                var val = function_context.apply(this, params);
+                if (cb) cb(val);
+            }, 0);
+        };
     </script>
 </head>
 
@@ -28,14 +28,13 @@
             </div>
             <div class="panel-body">
 
-                 <div>
+                <div>
                     <div class="row">
                         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
                             <input id="csv_file_input" type="file" accept=".csv" />
                         </div>
                         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 text-right">
-                            <a id="see_source_btn" class="btn btn-primary" role="button" data-toggle="collapse" href="#div_file_content" aria-expanded="false"
-                                aria-controls="div_file_content">See source file content &nbsp;<span class=" glyphicon glyphicon-chevron-down"></span></a>
+                            <a id="see_source_btn" class="btn btn-primary" role="button" data-toggle="collapse" href="#div_file_content" aria-expanded="false" aria-controls="div_file_content">See source file content &nbsp;<span class=" glyphicon glyphicon-chevron-down"></span></a>
                         </div>
                     </div>
                     <br />
@@ -69,23 +68,23 @@
                             </tbody>
 
                         </table>
-                       
+
                     </div>
-                  
-                   
-                     
+
+
+
                 </div>
             </div>
             <div class="panel-footer">
-                        <label>Write a name for this mapping.</label><br>
-                        <input id="mapNameText" type="text" class="form-control" style='max-width:500px;' required/><br>
-                        <button id="send_data_btn" class="btn btn-primary" >Send Data to App Base</button>
+                <label>Write a name for this mapping.</label><br>
+                <input id="mapNameText" type="text" class="form-control" style='max-width:500px;' required/><br>
+                <button id="send_data_btn" class="btn btn-primary">Send Data to App Base</button>
             </div>
 
         </div>
     </div>
-    
-    
+
+
     <div class="modal fade" id="modal-progress">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -102,7 +101,7 @@
             </div>
         </div>
     </div>
-    
+
 
     <script src="js/jquery-1.12.4.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
@@ -113,103 +112,135 @@
 
     <script>
         $('#see_source_btn').on('click', function() {
-            if(!$('#div_file_content').hasClass('in')) {
-              $(this).children('span').removeClass('glyphicon-chevron-down');
-              $(this).children('span').addClass('glyphicon-chevron-up');
-            }else{
-              $(this).children('span').removeClass('glyphicon-chevron-up');
-              $(this).children('span').addClass('glyphicon-chevron-down');
+            if (!$('#div_file_content').hasClass('in')) {
+                $(this).children('span').removeClass('glyphicon-chevron-down');
+                $(this).children('span').addClass('glyphicon-chevron-up');
+            } else {
+                $(this).children('span').removeClass('glyphicon-chevron-up');
+                $(this).children('span').addClass('glyphicon-chevron-down');
             }
-        } );
-        
-   //prepara el objeto mapping para enviar 
-   var prepData = function() {
-       //opening modal
-       $('#modal-progress').modal('show');
+        });
 
-       
-       $.mappingObj.formName = $('select#form_names').children('option:selected').val();
-       $.mappingObj.isFirstColumnHeading = $('#first_row_checker').is(':checked');
-       $.mappingObj.sourceName = $('#mapNameText').val();
-       let selectedOptions = $('select.form_columns').children('option:selected');
-       $.mappingObj.mappingProperties =[];
-       if (selectedOptions.length > 0 ){
-           //pushing selected columns
-           selectedOptions.each(function(item){
-                let fileColumn =  {colStart: 0, colEnd: 0, index: 0, isIgnored: false};
-                let formColumn = {name: '', type: '', order: 0, isReference: false, reference:{ formName:'', fieldName:'' }};
-                let map = {fileColumn: fileColumn, formColumn: formColumn};
-                let counting = 0;
-                
-                map.fileColumn.index = item;
-               if (!$(this).val() == 'ignore'){                   
-                   map.formColumn.name = $(this).attr('data-name');
-                   map.formColumn.type = $(this).attr('data-type');
-                   map.formColumn.order = $(this).attr('data-order');
-                   map.formColumn.isReference = $(this).attr('data-isreference')=='true';
-                   if (map.formColumn.isReference){
-                       map.formColumn.reference.formName = $(this).attr('data-formreferenced');
-                       map.formColumn.reference.fieldName = $(this).attr('data-datareferenced');
-                   } 
-                   $.mappingObj.mappingProperties.push(map);
-                   counting++;
-               } 
-               
-              
-           });
-
-           //pushing missing data-columns
-           let mapped = $.mappingObj.mappingProperties.map(item => item.formColumn.name);
-           let nonMapProperties = $.selectedForm.properties.filter(item => {
-               return !mapped.includes(item.name);
-           });
-
-           $(nonMapProperties).each(function(i) {
-               let fileColumn =  {colStart: 0, colEnd: 0, index: 0, isIgnored: true};
-                let formColumn = {name: nonMapProperties[i].name, type: nonMapProperties[i].type, order: nonMapProperties[i].order, isReference: nonMapProperties[i].isReference == "true", reference:{ formName:'', fieldName:'' }};
-                if(nonMapProperties[i].isReference == "true"){
-                    formColumn.reference.formName = nonMapProperties[i].formReferenced;
-                    formColumn.reference.fieldName = nonMapProperties[i].dataReferenced;
-                }
-                let map = {fileColumn: fileColumn, formColumn: formColumn};
-                $.mappingObj.mappingProperties.push(map);
-
-           });
+        //prepara el objeto mapping para enviar 
+        var prepData = function() {
+            //opening modal
+            $('#modal-progress').modal('show');
 
 
-           
-           let total = $.json_array.data.length + 1;
-           let progressValue = 0;
-           $('#sendingProgress').attr('max', total);
-           $('#sendingProgress').attr('value', progressValue);
-           
-           $.appBaseService.saveMapping($.mappingObj, function(){
-               $('#sendingProgress').attr('value', progressValue++);
-                $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
-                    $('#sendingProgress').attr('value', progressValue++);
-                }, () => {
-                    //alert('listo!');
+            $.mappingObj.formName = $('select#form_names').children('option:selected').val();
+            $.mappingObj.isFirstColumnHeading = $('#first_row_checker').is(':checked');
+            $.mappingObj.sourceName = $('#mapNameText').val();
+            let selectedOptions = $('select.form_columns').children('option:selected');
+            $.mappingObj.mappingProperties = [];
+            if (selectedOptions.length > 0) {
+                //pushing selected columns
+                selectedOptions.each(function(item) {
+                    let fileColumn = {
+                        colStart: 0,
+                        colEnd: 0,
+                        index: 0,
+                        isIgnored: false
+                    };
+                    let formColumn = {
+                        name: '',
+                        type: '',
+                        order: 0,
+                        isReference: false,
+                        reference: {
+                            formName: '',
+                            fieldName: ''
+                        }
+                    };
+                    let map = {
+                        fileColumn: fileColumn,
+                        formColumn: formColumn
+                    };
+                    let counting = 0;
+
+                    map.fileColumn.index = item;
+                    if ($(this).val() != 'ignore') {
+                        map.formColumn.name = $(this).attr('data-name');
+                        map.formColumn.type = $(this).attr('data-type');
+                        map.formColumn.order = $(this).attr('data-order');
+                        map.formColumn.isReference = $(this).attr('data-isreference') == 'true';
+                        if (map.formColumn.isReference) {
+                            map.formColumn.reference.formName = $(this).attr('data-formreferenced');
+                            map.formColumn.reference.fieldName = $(this).attr('data-datareferenced');
+                        }
+                        $.mappingObj.mappingProperties.push(map);
+                        counting++;
+                    }
+
+
                 });
-            });
-          
-       } else {
-           alert('Ups, seems like you haven\'t choosed any Form to map');
-           return;
-       }
-       
-        
-    }
-        
+
+                //pushing missing data-columns
+                let mapped = $.mappingObj.mappingProperties.map(item => item.formColumn.name);
+                let nonMapProperties = $.selectedForm.properties.filter(item => {
+                    return !mapped.includes(item.name);
+                });
+
+                $(nonMapProperties).each(function(i) {
+                    let fileColumn = {
+                        colStart: 0,
+                        colEnd: 0,
+                        index: 0,
+                        isIgnored: true
+                    };
+                    let formColumn = {
+                        name: nonMapProperties[i].name,
+                        type: nonMapProperties[i].type,
+                        order: nonMapProperties[i].order,
+                        isReference: nonMapProperties[i].isReference == "true",
+                        reference: {
+                            formName: '',
+                            fieldName: ''
+                        }
+                    };
+                    if (nonMapProperties[i].isReference == "true") {
+                        formColumn.reference.formName = nonMapProperties[i].formReferenced;
+                        formColumn.reference.fieldName = nonMapProperties[i].dataReferenced;
+                    }
+                    let map = {
+                        fileColumn: fileColumn,
+                        formColumn: formColumn
+                    };
+                    $.mappingObj.mappingProperties.push(map);
+
+                });
+
+
+
+                let total = $.json_array.data.length + 1;
+                let progressValue = 0;
+                $('#sendingProgress').attr('max', total);
+                $('#sendingProgress').attr('value', progressValue);
+
+                $.appBaseService.saveMapping($.mappingObj, function() {
+                    $('#sendingProgress').attr('value', progressValue++);
+                    $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
+                        $('#sendingProgress').attr('value', progressValue++);
+                    }, () => {
+                        //alert('listo!');
+                    });
+                });
+
+            } else {
+                alert('Ups, seems like you haven\'t choosed any Form to map');
+                return;
+            }
+
+
+        }
+
         $('#send_data_btn').on('click', function() {
             prepData();
         });
-        
-    
     </script>
 
-    <script src="js/mocks.js"></script>
+    <!--script src="js/mocks.js"></script-->
 
-    <script src="js/test/appBaseServiceTest.js"></script>
+    <!--script src="js/test/appBaseServiceTest.js"></script-->
     <script src="js/csv_importer.js"></script>
 </body>
 

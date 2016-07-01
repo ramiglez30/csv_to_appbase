@@ -263,9 +263,9 @@ $.extend({
                 for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
                     value += indexRef > 0 ? ',' : '';
                     if (Array.isArray(dataType)) {
-                        value += '"' + getStoreDataFormat(dataType[indexRef], dataColumn[indexRef]) + '"';
+                        value += getStoreDataFormat(dataType[indexRef], dataColumn[indexRef]);
                     } else {
-                        value += '"' + getStoreDataFormat(dataType, dataColumn[indexRef]) + '"';
+                        value += getStoreDataFormat(dataType, dataColumn[indexRef]);
                     }
                 }
                 value += ')';
@@ -420,7 +420,7 @@ $.extend({
                 case 'DATE':
                     return '"' + value + '"';
                 default:
-                    return value;
+                    return '"' + value + '"';
             }
         };
 
