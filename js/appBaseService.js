@@ -126,6 +126,7 @@ $.extend({
             var isFirstColumnHeading = mappingObj.isFirstColumnHeading;
             var dataMapping = mappingObj.mappingProperties;
             var dataLength = dataArray.length;
+            /**Obtengo del mapping cuales son las columnas que son multireferencia */
             var multiRefArr = findSameReferenceForm(dataMapping);
 
             for (var i = isFirstColumnHeading == true ? 1 : 0; i < dataArray.length; i++) {
@@ -136,7 +137,7 @@ $.extend({
                     var mappingItem = dataMapping[item];
                     if (!mappingItem.fileColumn.isIgnored) {
                         /** Aqui tener en cuenta que en el array de maping pueden venir 2 items que sean parte de 
-                         * la misma columna en el formulario debedo a que esa columna es una referencia doble por lo
+                         * la misma columna en el formulario debido a que esa columna es una referencia doble por lo
                          * que al crear el comando del objeto esa columna se crea asi: (,). En el algoritmo actual el mapping 
                          * y los datos vienen en indices separados eso implica que se tengan que unir y garantizar 
                          * que no se repitan en el ciclo cuando se itere hacia un indice superior.
@@ -148,22 +149,40 @@ $.extend({
                         var dataColumn = dataRow[mappingItem.fileColumn.index];
 
                         if (mappingItem.formColumn.isReference) {
-                            let multiRefItem = multiRefArr.length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
+                            /** Aqui si la columna es una referencia trato obtengo 
+                             * si la columna actual esta en el arreglo de multireferencias */
+                            let multiRefItem = Object.keys(multiRefArr).length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
                             let value = null;
-                            // let isSecond = 
+
+
                             if (multiRefItem != null && multiRefItem != undefined) {
-                                dataColumn = Array();
-                                for (let multiItemIndex in multiRefItem) {
-                                    dataColumn.push(multiRefItem[multiItemIndex].fileColumn.index)
+                                /** Saber el indice que la columna actual ocupa en el arreglo de multireferencia determina
+                                 * si ya se ha procesado o no
+                                 */
+                                let isFirst = multiRefItem.indexOf(multiRefItem.find(function(itemFind) {
+                                    return mappingItem.formColumn.reference.fieldName === itemFind.formColumn.reference.fieldName;
+                                })) == 0;
+
+                                if (isFirst) {
+                                    /**Luego si es la primera ves que se itera sobre estas referencias multiples se procesan */
+                                    dataColumn = Array();
+                                    dataTypes = Array();
+                                    for (let multiItemIndex in multiRefItem) {
+                                        dataColumn.push(dataRow[multiRefItem[multiItemIndex].fileColumn.index]);
+                                        dataTypes.push(multiRefItem[multiItemIndex].formColumn.type);
+                                    }
+                                    value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
                                 }
-                                value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
 
                             } else {
 
                                 value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
                             }
 
-                            storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                            if (value != null) {
+                                storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                            }
+
 
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, dataColumn));
@@ -171,8 +190,34 @@ $.extend({
 
                     } else {
                         if (mappingItem.formColumn.isReference) {
-                            var value = getValueForReferenceColumn(mappingItem.formColumn.type, '');
-                            storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                            let multiRefItem = Object.keys(multiRefArr).length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
+                            let value = null;
+                            if (multiRefItem != null && multiRefItem != undefined) {
+                                /** Saber el indice que la columna actual ocupa en el arreglo de multireferencia determina
+                                 * si ya se ha procesado o no
+                                 */
+                                let isFirst = multiRefItem.indexOf(multiRefItem.find(function(itemFind) {
+                                    return mappingItem.formColumn.reference.fieldName === itemFind.formColumn.reference.fieldName;
+                                })) == 0;
+
+                                if (isFirst) {
+                                    /**Luego si es la primera ves que se itera sobre estas referencias multiples se procesan */
+                                    dataColumn = Array();
+                                    dataTypes = Array();
+                                    for (let multiItemIndex in multiRefItem) {
+                                        dataColumn.push('');
+                                        dataTypes.push(multiRefItem[multiItemIndex].formColumn.type);
+                                    }
+                                    value = getValueForReferenceColumn(mappingItem.formColumn.type, dataColumn);
+                                }
+
+                            } else {
+                                value = getValueForReferenceColumn(mappingItem.formColumn.type, '');
+                            }
+                            if (value != null) {
+                                storeDataArray.splice(mappingItem.formColumn.order, 0, value);
+                            }
+
                         } else {
                             storeDataArray.splice(mappingItem.formColumn.order, 0, getStoreDataFormat(mappingItem.formColumn.type, ''));
                         }
@@ -217,7 +262,11 @@ $.extend({
             if (Array.isArray(dataColumn)) {
                 for (var indexRef = 0; indexRef < dataColumn.length; indexRef++) {
                     value += indexRef > 0 ? ',' : '';
-                    value += '"' + getStoreDataFormat(dataType, dataColumn[indexRef]) + '"';
+                    if (Array.isArray(dataType)) {
+                        value += '"' + getStoreDataFormat(dataType[indexRef], dataColumn[indexRef]) + '"';
+                    } else {
+                        value += '"' + getStoreDataFormat(dataType, dataColumn[indexRef]) + '"';
+                    }
                 }
                 value += ')';
             } else {
