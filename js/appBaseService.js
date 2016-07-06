@@ -60,19 +60,41 @@ $.extend({
                 if (!self.existDataInForm('SOURCE_NAME', mappingObj.sourceName, resultSet)) {
                     var mappingFormMap = getMappingFormMap();
                     var mappingFormRow = getMappingFormRow(mappingObj);
-                    self.saveFormData(mappingFormMap, mappingFormRow, null, function() {
+                    var savingMessagesArray = Array();
+                    self.saveFormData(mappingFormMap, mappingFormRow, function(itemCallbackData) {
+                        savingMessagesArray.push(itemCallbackData.message);
 
-                        var mappingPropertiesMap = getMappingPropertiesFormMap();
-                        var mappingPropertiesArray = Array();
-                        for (var index in mappingObj.mappingProperties) {
-                            var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.sourceName, mappingObj.mappingProperties[index])
-                            mappingPropertiesArray.push(mappingPropertiesRow);
+                    }, function(endCallbackData) {
+                        if (endCallbackData.code == 200) {
+                            var mappingPropertiesMap = getMappingPropertiesFormMap();
+                            var mappingPropertiesArray = Array();
+                            for (var index in mappingObj.mappingProperties) {
+                                var mappingPropertiesRow = getMappingPropertiesRow(mappingObj.sourceName, mappingObj.mappingProperties[index])
+                                mappingPropertiesArray.push(mappingPropertiesRow);
+                            }
+
+                            self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
+
+                                savingMessagesArray.push(data.message);
+
+                            }, function(saveEndCallbackData) {
+                                endCallback({
+                                    code: 200,
+                                    message: 'Mapping saved successfuly',
+                                    stackTrace: savingMessagesArray
+                                });
+                            });
+                        } else {
+                            endCallback(endCallbackData);
                         }
-
-                        self.saveFormData(mappingPropertiesMap, mappingPropertiesArray, function(data) {
-
-                        }, endCallback)
-
+                    });
+                } else {
+                    /**Tener en cuenta que cuando se encuentra un mapping con el mismo source que se hace.
+                     * se le debe notificar el usuario o tambien devolver el mapping encontrado
+                     */
+                    endCallback({
+                        code: 300,
+                        message: 'Mapping with same name exist'
                     });
                 }
             });
@@ -242,14 +264,24 @@ $.extend({
                         if (callback != undefined && callback != null) {
                             callback({
                                 current: i,
-                                total: dataLength
+                                total: dataLength,
+                                message: result.message
                             });
                         }
                         if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
-                            endCallback();
+                            endCallback({
+                                code: 200,
+                                message: 'All items were saved successfuly'
+                            });
                         }
-                    }, function() {
-
+                    }, function(jqXHR, textStatus, errorThrown) {
+                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                            endCallback({
+                                code: 300,
+                                message: errorThrown,
+                                status: textStatus
+                            });
+                        }
                     });
 
                 }

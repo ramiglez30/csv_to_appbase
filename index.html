@@ -94,6 +94,28 @@
                 </div>
                 <div class="modal-body">
                     <progress id="sendingProgress" class="form-control"></progress>
+                    <div id="saving-trace">
+                        <span id="currentItem"></span>
+                        <div>
+                            <ul id="stackTrace">
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                                <ol>Some item</ol>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -216,13 +238,47 @@
                 $('#sendingProgress').attr('max', total);
                 $('#sendingProgress').attr('value', progressValue);
 
-                $.appBaseService.saveMapping($.mappingObj, function() {
-                    $('#sendingProgress').attr('value', progressValue++);
-                    $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
-                        $('#sendingProgress').attr('value', progressValue++);
-                    }, () => {
-                        //alert('listo!');
-                    });
+                /**Aqui tener en cuenta que no se puede guardar dos mapping con el mismo identificador
+                 * contemplar este caso y notificar el usuario
+                 */
+                let current = 0;
+                $('#currentItem').html(current + ' of ' + total);
+
+                $.appBaseService.saveMapping($.mappingObj, function(endCallbackData) {
+                    if (endCallbackData != undefined && endCallbackData != null) {
+                        if (endCallbackData.code == 300) {
+                            alert(endCallbackData.message);
+                            let errorSpan = '<span style="color:red;">Error: </span>'
+                            $('#currentItem').html(errorSpan + endCallbackData.message);
+                            return;
+                        } else {
+
+                            if (endCallbackData.stackTrace != undefined) {
+                                for (let i in endCallbackData.stackTrace) {
+                                    let litem = '<li>' + endCallbackData.stackTrace[i] + '</li>'
+                                    $('#stackTrace').append(litem);
+                                }
+                            }
+
+                            $('#sendingProgress').attr('value', progressValue++);
+                            $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
+                                $('#sendingProgress').attr('value', progressValue++);
+                                current++;
+                                $('#currentItem').html(current + ' of ' + total);
+                                let litem = '<li>' + data.message + '</li>'
+                                $('#stackTrace').append(litem);
+                            }, () => {
+                                //alert('listo!');
+                            });
+                        }
+                    }
+                    /**  Revisar en el appBaseService que la funcion endCallback siempre devuelva un objeto
+                                        con un codigo y un mesaje para que pueda ser empleado como forma de validacion en el cliente  */
+
+                    /** Aqui hay que validar el codigo de retorno del callback y mostrar el mensaje adecuadamente en la pantalla
+                     * Revisar que funcione bien el progressbar con respecto a lo que esta sucediendo en el service
+                     */
+
                 });
 
             } else {
