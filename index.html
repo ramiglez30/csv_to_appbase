@@ -95,25 +95,18 @@
                 <div class="modal-body">
                     <progress id="sendingProgress" class="form-control"></progress>
                     <div id="saving-trace">
-                        <span id="currentItem"></span>
-                        <div>
-                            <ul id="stackTrace">
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                                <ol>Some item</ol>
-                            </ul>
+                        <div style="margin:10px ">
+                            <span id="currentItem"></span>
+                        </div>
+                        <button id="btn-expand" class="btn btn-default btn-circle" type="button" data-toggle="collapse" data-target="#stackTraceContiner" aria-expanded="false" aria-controls="stackTraceContiner">
+                        <span class="glyphicon glyphicon-chevron-down"></span>
+                        </button>
+                        <div class="collapse" id="stackTraceContiner">
+                            <div class="well">
+                                <ul id="stackTrace">
+
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +122,7 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/csv_loader.js"></script>
     <script src="js/papaparse.min.js"></script>
-    <script src="js/mocks.js"></script>
+    <!--<script src="js/mocks.js"></script>-->
     <script src="js/appBaseService.js"></script>
 
     <script>
@@ -143,11 +136,22 @@
             }
         });
 
+        $('#btn-expand').on('click', function() {
+            if (!$('#stackTraceContiner').hasClass('in')) {
+                $(this).children('span').removeClass('glyphicon-chevron-down');
+                $(this).children('span').addClass('glyphicon-chevron-up');
+            } else {
+                $(this).children('span').removeClass('glyphicon-chevron-up');
+                $(this).children('span').addClass('glyphicon-chevron-down');
+            }
+        });
+
         //prepara el objeto mapping para enviar 
         var prepData = function() {
             //opening modal
             $('#modal-progress').modal('show');
-
+            $('#currentItem').html('');
+            $('#stackTrace').html('');
 
             $.mappingObj.formName = $('select#form_names').children('option:selected').val();
             $.mappingObj.isFirstColumnHeading = $('#first_row_checker').is(':checked');
@@ -262,6 +266,7 @@
 
                             $('#sendingProgress').attr('value', progressValue++);
                             $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
+
                                 $('#sendingProgress').attr('value', progressValue++);
                                 current++;
                                 $('#currentItem').html(current + ' of ' + total);
