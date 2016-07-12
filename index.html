@@ -247,7 +247,7 @@
                 /**Aqui tener en cuenta que no se puede guardar dos mapping con el mismo identificador
                  * contemplar este caso y notificar el usuario
                  */
-                var current = 0;
+                var current = 1;
                 $('#currentItem').html(current + ' of ' + total);
 
                 $.appBaseService.saveMapping($.mappingObj, function(endCallbackData) {

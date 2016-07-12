@@ -150,7 +150,7 @@ $.extend({
             var dataLength = dataArray.length;
             /**Obtengo del mapping cuales son las columnas que son multireferencia */
             var multiRefArr = findSameReferenceForm(dataMapping);
-
+            var executed = isFirstColumnHeading == true ? 1 : 0;
             for (var i = isFirstColumnHeading == true ? 1 : 0; i < dataArray.length; i++) {
                 var storeDataArray = Array();
                 var dataRow = dataArray[i];
@@ -248,6 +248,7 @@ $.extend({
 
                 var formQuery = storeDataArray.join(',');
                 if (self.options.useMock) {
+                    executed++;
                     if (callback != undefined && callback != null) {
                         setTimeout(
                             callback({
@@ -257,7 +258,7 @@ $.extend({
                                 message: 'Data saved succesfuly --MOCK--'
                             }), 500);
                     }
-                    if (i == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
+                    if (executed == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
                         endCallback({
                             code: 200,
                             message: 'All items were saved successfuly'
@@ -267,22 +268,24 @@ $.extend({
                     var command = 'Create New ' + mappingObj.formName + '(' + formQuery + ')';
 
                     self.serverRequest(command, function(result) {
+                        executed++;
                         if (callback != undefined && callback != null) {
                             callback({
-                                current: i,
+                                current: executed,
                                 total: dataLength,
                                 code: 100,
                                 message: result.message
                             });
                         }
-                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                        if (executed == dataArray.length && (endCallback != undefined && endCallback != null)) {
                             endCallback({
                                 code: 200,
                                 message: 'All items were saved successfuly'
                             });
                         }
                     }, function(jqXHR, textStatus, errorThrown) {
-                        if (i == dataArray.length && (endCallback != undefined && endCallback != null)) {
+                        executed++;
+                        if (executed == dataArray.length && (endCallback != undefined && endCallback != null)) {
                             endCallback({
                                 code: 300,
                                 message: errorThrown,
