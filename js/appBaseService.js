@@ -249,22 +249,29 @@ $.extend({
                 var formQuery = storeDataArray.join(',');
                 if (self.options.useMock) {
                     if (callback != undefined && callback != null) {
-                        callback({
-                            current: i,
-                            total: dataLength
-                        });
+                        setTimeout(
+                            callback({
+                                current: i,
+                                total: dataLength,
+                                code: 100,
+                                message: 'Data saved succesfuly --MOCK--'
+                            }), 500);
                     }
                     if (i == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
-                        endCallback();
+                        endCallback({
+                            code: 200,
+                            message: 'All items were saved successfuly'
+                        });
                     }
                 } else {
                     var command = 'Create New ' + mappingObj.formName + '(' + formQuery + ')';
 
-                    serverRequest(command, function(result) {
+                    self.serverRequest(command, function(result) {
                         if (callback != undefined && callback != null) {
                             callback({
                                 current: i,
                                 total: dataLength,
+                                code: 100,
                                 message: result.message
                             });
                         }
@@ -312,7 +319,9 @@ $.extend({
          * la posicion en el mapping que ocupa */
         var findSameReferenceForm = function(dataMapping) {
             var multiReferences = Array();
-            var filterRef = dataMapping.filter(function(item) {return item.formColumn.isReference == true});
+            var filterRef = dataMapping.filter(function(item) {
+                return item.formColumn.isReference == true
+            });
 
             for (let i = 0; i < filterRef.length - 1; i++) {
 
@@ -383,7 +392,7 @@ $.extend({
             } else {
                 formsArray = Array();
                 var command = 'SHOW FORMS';
-                serverRequest(command, function(result) {
+                self.serverRequest(command, function(result) {
                     parseFormRows(result, callback)
                 }, function() {
 
@@ -465,12 +474,13 @@ $.extend({
          */
         self.getFormData = function(formName, filterPropertyArray, callback) {
             if (formName == undefined || formName == null) {
-                return;
+                return false;
             }
 
             if (self.options.useMock) {
                 if (callback != undefined && callback != null) {
-                    callback(formDataMock(formName))
+                    callback(formDataMock(formName));
+                    return;
                 }
             } else {
 
@@ -486,7 +496,7 @@ $.extend({
                     }
                 }
 
-                serverRequest(command, function(result) {
+                self.serverRequest(command, function(result) {
                     if (result.code == 100) {
                         var headers = result.resultSet.headers;
                         var rows = result.resultSet.rows;
@@ -903,7 +913,7 @@ $.extend({
         };
 
         /** Este metodo es generico sirve para hacer las request al application base*/
-        var serverRequest = function(commandText, successCallback, errorCallback) {
+        self.serverRequest = function(commandText, successCallback, errorCallback) {
             $.ajax({
                 type: 'GET',
                 url: appBaseUrl,

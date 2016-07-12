@@ -122,7 +122,7 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/csv_loader.js"></script>
     <script src="js/papaparse.min.js"></script>
-    <!--<script src="js/mocks.js"></script>-->
+    <script src="js/mocks.js"></script>
     <script src="js/appBaseService.js"></script>
 
     <script>
@@ -201,7 +201,9 @@
                 });
 
                 //pushing missing data-columns
-                var mapped = $.mappingObj.mappingProperties.map(function(item){ item.formColumn.name});
+                var mapped = $.mappingObj.mappingProperties.map(function(item) {
+                    item.formColumn.name
+                });
                 var nonMapProperties = $.selectedForm.properties.filter(function(item) {
                     return !mapped.includes(item.name);
                 });
@@ -258,7 +260,7 @@
                         } else {
 
                             if (endCallbackData.stackTrace != undefined) {
-                                for (let i in endCallbackData.stackTrace) {
+                                for (var i in endCallbackData.stackTrace) {
                                     var litem = '<li>' + endCallbackData.stackTrace[i] + '</li>'
                                     $('#stackTrace').append(litem);
                                 }
