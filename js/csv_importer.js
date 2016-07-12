@@ -74,7 +74,7 @@ $(document).ready(function() {
 
     //event handler para el select form
     $('select#form_names').on('change',function() {
-         $.appBaseService.getForms((result) => {formObject = result[this.options[this.selectedIndex].value];
+         $.appBaseService.getForms(function(result){formObject = result[this.options[this.selectedIndex].value];
                                                 $.selectedForm = formObject;
                                                 seedHeadingMaps();});
          
@@ -124,7 +124,7 @@ $(document).ready(function() {
      if ($.json_array != null){
          if($.json_array.data != null){
               var max;
-              max =  Math.max.apply(null,$.json_array.data.map(item => item.length));
+              max =  Math.max.apply(null,$.json_array.data.map(function(item){return item.length}));
               return max;
          }  else {return 0;}
      } else { return 0;}
@@ -141,7 +141,7 @@ $(document).ready(function() {
 
         var reader = new FileReader();
         reader.onload = function() {
-            var text = reader.result.split(' ').filter(n => n).join(' ');
+            var text = reader.result.split(' ').filter(function(n){return n} ).join(' ');
             var content = document.getElementById('file_content');
             content.value = text;
             parseCSVtoJSON.applyAsync([text], seedTableData);

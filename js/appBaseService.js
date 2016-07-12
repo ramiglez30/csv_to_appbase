@@ -173,15 +173,15 @@ $.extend({
                         if (mappingItem.formColumn.isReference) {
                             /** Aqui si la columna es una referencia trato obtengo 
                              * si la columna actual esta en el arreglo de multireferencias */
-                            let multiRefItem = Object.keys(multiRefArr).length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
-                            let value = null;
+                            var multiRefItem = Object.keys(multiRefArr).length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
+                            var value = null;
 
 
                             if (multiRefItem != null && multiRefItem != undefined) {
                                 /** Saber el indice que la columna actual ocupa en el arreglo de multireferencia determina
                                  * si ya se ha procesado o no
                                  */
-                                let isFirst = multiRefItem.indexOf(multiRefItem.find(function(itemFind) {
+                                var isFirst = multiRefItem.indexOf(multiRefItem.find(function(itemFind) {
                                     return mappingItem.formColumn.reference.fieldName === itemFind.formColumn.reference.fieldName;
                                 })) == 0;
 
@@ -212,13 +212,13 @@ $.extend({
 
                     } else {
                         if (mappingItem.formColumn.isReference) {
-                            let multiRefItem = Object.keys(multiRefArr).length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
-                            let value = null;
+                            var multiRefItem = Object.keys(multiRefArr).length > 0 ? multiRefArr[mappingItem.formColumn.name] : null;
+                            var value = null;
                             if (multiRefItem != null && multiRefItem != undefined) {
                                 /** Saber el indice que la columna actual ocupa en el arreglo de multireferencia determina
                                  * si ya se ha procesado o no
                                  */
-                                let isFirst = multiRefItem.indexOf(multiRefItem.find(function(itemFind) {
+                                var isFirst = multiRefItem.indexOf(multiRefItem.find(function(itemFind) {
                                     return mappingItem.formColumn.reference.fieldName === itemFind.formColumn.reference.fieldName;
                                 })) == 0;
 
@@ -311,14 +311,14 @@ $.extend({
         /**Esta funcion busca en el mapping si existe otra referencia al mismo form y devuelve
          * la posicion en el mapping que ocupa */
         var findSameReferenceForm = function(dataMapping) {
-            let multiReferences = Array();
-            let filterRef = dataMapping.filter(item => item.formColumn.isReference == true);
+            var multiReferences = Array();
+            var filterRef = dataMapping.filter(function(item) {return item.formColumn.isReference == true});
 
             for (let i = 0; i < filterRef.length - 1; i++) {
 
                 for (let j = i + 1; j < filterRef.length; j++) {
                     if (filterRef[i].formColumn.name == filterRef[j].formColumn.name) {
-                        let exist = multiReferences[filterRef[i].formColumn.name];
+                        var exist = multiReferences[filterRef[i].formColumn.name];
                         if (exist == undefined) {
                             multiReferences[filterRef[i].formColumn.name] = [filterRef[i], filterRef[j]];
                         } else {

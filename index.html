@@ -156,18 +156,18 @@
             $.mappingObj.formName = $('select#form_names').children('option:selected').val();
             $.mappingObj.isFirstColumnHeading = $('#first_row_checker').is(':checked');
             $.mappingObj.sourceName = $('#mapNameText').val();
-            let selectedOptions = $('select.form_columns').children('option:selected');
+            var selectedOptions = $('select.form_columns').children('option:selected');
             $.mappingObj.mappingProperties = [];
             if (selectedOptions.length > 0) {
                 //pushing selected columns
                 selectedOptions.each(function(item) {
-                    let fileColumn = {
+                    var fileColumn = {
                         colStart: 0,
                         colEnd: 0,
                         index: 0,
                         isIgnored: false
                     };
-                    let formColumn = {
+                    var formColumn = {
                         name: '',
                         type: '',
                         order: 0,
@@ -177,11 +177,11 @@
                             fieldName: ''
                         }
                     };
-                    let map = {
+                    var map = {
                         fileColumn: fileColumn,
                         formColumn: formColumn
                     };
-                    let counting = 0;
+                    var counting = 0;
 
                     map.fileColumn.index = item;
                     if ($(this).val() != 'ignore') {
@@ -201,19 +201,19 @@
                 });
 
                 //pushing missing data-columns
-                let mapped = $.mappingObj.mappingProperties.map(item => item.formColumn.name);
-                let nonMapProperties = $.selectedForm.properties.filter(item => {
+                var mapped = $.mappingObj.mappingProperties.map(function(item){ item.formColumn.name});
+                var nonMapProperties = $.selectedForm.properties.filter(function(item) {
                     return !mapped.includes(item.name);
                 });
 
                 $(nonMapProperties).each(function(i) {
-                    let fileColumn = {
+                    var fileColumn = {
                         colStart: 0,
                         colEnd: 0,
                         index: 0,
                         isIgnored: true
                     };
-                    let formColumn = {
+                    var formColumn = {
                         name: nonMapProperties[i].name,
                         type: nonMapProperties[i].type,
                         order: nonMapProperties[i].order,
@@ -227,7 +227,7 @@
                         formColumn.reference.formName = nonMapProperties[i].formReferenced;
                         formColumn.reference.fieldName = nonMapProperties[i].dataReferenced;
                     }
-                    let map = {
+                    var map = {
                         fileColumn: fileColumn,
                         formColumn: formColumn
                     };
@@ -237,29 +237,29 @@
 
 
 
-                let total = $.json_array.data.length + 1;
-                let progressValue = 0;
+                var total = $.json_array.data.length + 1;
+                var progressValue = 0;
                 $('#sendingProgress').attr('max', total);
                 $('#sendingProgress').attr('value', progressValue);
 
                 /**Aqui tener en cuenta que no se puede guardar dos mapping con el mismo identificador
                  * contemplar este caso y notificar el usuario
                  */
-                let current = 0;
+                var current = 0;
                 $('#currentItem').html(current + ' of ' + total);
 
                 $.appBaseService.saveMapping($.mappingObj, function(endCallbackData) {
                     if (endCallbackData != undefined && endCallbackData != null) {
                         if (endCallbackData.code == 300) {
                             alert(endCallbackData.message);
-                            let errorSpan = '<span style="color:red;">Error: </span>'
+                            var errorSpan = '<span style="color:red;">Error: </span>'
                             $('#currentItem').html(errorSpan + endCallbackData.message);
                             return;
                         } else {
 
                             if (endCallbackData.stackTrace != undefined) {
                                 for (let i in endCallbackData.stackTrace) {
-                                    let litem = '<li>' + endCallbackData.stackTrace[i] + '</li>'
+                                    var litem = '<li>' + endCallbackData.stackTrace[i] + '</li>'
                                     $('#stackTrace').append(litem);
                                 }
                             }
@@ -270,9 +270,9 @@
                                 $('#sendingProgress').attr('value', progressValue++);
                                 current++;
                                 $('#currentItem').html(current + ' of ' + total);
-                                let litem = '<li>' + data.message + '</li>'
+                                var litem = '<li>' + data.message + '</li>'
                                 $('#stackTrace').append(litem);
-                            }, () => {
+                            }, function() {
                                 //alert('listo!');
                             });
                         }

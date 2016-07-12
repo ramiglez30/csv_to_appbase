@@ -28,7 +28,7 @@ var Func5 = function() {
 }
 
 loggingSync();
-Func2.applyAsync([message], ()=>{console.log('finished')});
+Func2.applyAsync([message], function(){console.log('finished')});
 Func3();
 Func4();
 Func5();
