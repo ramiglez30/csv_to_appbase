@@ -247,6 +247,7 @@ $.extend({
                 }
 
                 var formQuery = storeDataArray.join(',');
+                var k = i;
                 if (self.options.useMock) {
                     executed++;
                     if (callback != undefined && callback != null) {
@@ -255,10 +256,11 @@ $.extend({
                                 current: i,
                                 total: dataLength,
                                 code: 100,
-                                message: 'Data saved succesfuly --MOCK--'
+                                message: 'Data saved succesfuly --MOCK--',
+                                rowKey: k
                             }), 500);
                     }
-                    if (executed == dataArray.length - 1 && (endCallback != undefined && endCallback != null)) {
+                    if (executed == dataArray.length  && (endCallback != undefined && endCallback != null)) {
                         endCallback({
                             code: 200,
                             message: 'All items were saved successfuly'
@@ -266,15 +268,15 @@ $.extend({
                     }
                 } else {
                     var command = 'Create New ' + mappingObj.formName + '(' + formQuery + ')';
-
-                    self.serverRequest(command, function(result) {
+                    self.serverRequest(command, function(result, key) {
                         executed++;
                         if (callback != undefined && callback != null) {
                             callback({
                                 current: executed,
                                 total: dataLength,
                                 code: 100,
-                                message: result.message
+                                message: result.message,
+                                rowKey: key
                             });
                         }
                         if (executed == dataArray.length && (endCallback != undefined && endCallback != null)) {
@@ -283,16 +285,17 @@ $.extend({
                                 message: 'All items were saved successfuly'
                             });
                         }
-                    }, function(jqXHR, textStatus, errorThrown) {
+                    }, function(jqXHR, textStatus, errorThrown, key) {
                         executed++;
                         if (executed == dataArray.length && (endCallback != undefined && endCallback != null)) {
                             endCallback({
                                 code: 300,
                                 message: errorThrown,
-                                status: textStatus
+                                status: textStatus, 
+                                rowKey: key
                             });
                         }
-                    });
+                    }, k);
 
                 }
             }
@@ -916,7 +919,7 @@ $.extend({
         };
 
         /** Este metodo es generico sirve para hacer las request al application base*/
-        self.serverRequest = function(commandText, successCallback, errorCallback) {
+        self.serverRequest = function(commandText, successCallback, errorCallback, k) {
             $.ajax({
                 type: 'GET',
                 url: appBaseUrl,
@@ -925,8 +928,10 @@ $.extend({
                 data: {
                     command: commandText
                 },
-                success: successCallback,
-                error: errorCallback
+                success: function(result) {
+                    successCallback(result, k)},
+                error: function(jqXHR, textStatus, errorThrown ){
+                    errorCallback(jqXHR, textStatus, errorThrown , k)}
             });
         };
     }
@@ -935,6 +940,6 @@ $.extend({
 $(function() {
     $.appBaseService.initialize({
         requestForm: true,
-        useMock: false
+        useMock: true
     });
 })
