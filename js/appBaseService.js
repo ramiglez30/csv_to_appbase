@@ -831,6 +831,7 @@ $.extend({
                 var headers = resultSet.headers;
                 var rows = resultSet.rows;
                 var mapingArray = Array();
+                var counter = 0;
                 for (var index in rows) {
                     //Aqui se puede consultar MAPPING_PROPERTIES para obtener las properties de cada definicion
                     var filterArray = [{
@@ -839,12 +840,13 @@ $.extend({
                         fieldType: 'TEXT'
                     }]
                     self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult) {
+                        counter++;
                         var mappingPropertiesResult = filterResult.rows;
                         var mappingObj = getMappingObj(rows[index], filterResult.rows);
 
                         mapingArray.push(mappingObj);
 
-                        if (index == rows.length - 1) {
+                        if (counter == rows.length) {
                             if (callback != undefined && callback != null) {
                                 callback(mapingArray);
                             }
@@ -946,6 +948,6 @@ $.extend({
 $(function() {
     $.appBaseService.initialize({
         requestForm: true,
-        useMock: true
+        useMock: false
     });
 })
