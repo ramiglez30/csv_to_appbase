@@ -478,14 +478,14 @@ $.extend({
          *      fieldType: 'TEXT, NUMBER, BOOLEAN'
          * }]
          */
-        self.getFormData = function(formName, filterPropertyArray, callback) {
+        self.getFormData = function(formName, filterPropertyArray, callback, callbackData) {
             if (formName == undefined || formName == null) {
                 return false;
             }
 
             if (self.options.useMock) {
                 if (callback != undefined && callback != null) {
-                    callback(formDataMock(formName));
+                    callback(formDataMock(formName), callbackData);
                     return;
                 }
             } else {
@@ -502,17 +502,17 @@ $.extend({
                     }
                 }
 
-                self.serverRequest(command, function(result) {
+                self.serverRequest(command, function(result, data) {
                     if (result.code == 100) {
                         var headers = result.resultSet.headers;
                         var rows = result.resultSet.rows;
                         if (callback != undefined && callback != null) {
-                            callback(result.resultSet)
+                            callback(result.resultSet, data)
                         }
                     }
                 }, function(error) {
 
-                });
+                }, callbackData);
             }
         };
 
@@ -839,10 +839,10 @@ $.extend({
                         fieldValue: rows[index][0],
                         fieldType: 'TEXT'
                     }]
-                    self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult) {
+                    self.getFormData('MAPPING_PROPERTIES', filterArray, function(filterResult, data) {
                         counter++;
                         var mappingPropertiesResult = filterResult.rows;
-                        var mappingObj = getMappingObj(rows[index], filterResult.rows);
+                        var mappingObj = getMappingObj(data, filterResult.rows);
 
                         mapingArray.push(mappingObj);
 
@@ -851,7 +851,7 @@ $.extend({
                                 callback(mapingArray);
                             }
                         }
-                    });
+                    }, rows[index]);
                 }
             });
         };
@@ -921,7 +921,7 @@ $.extend({
         };
 
         /** Este metodo es generico sirve para hacer las request al application base*/
-        self.serverRequest = function(commandText, successCallback, errorCallback, rowKey) {
+        self.serverRequest = function(commandText, successCallback, errorCallback, callbackData) {
             $.ajax({
                 type: 'GET',
                 url: appBaseUrl,
@@ -932,12 +932,12 @@ $.extend({
                 },
                 success: function(result) {
                     if (successCallback != undefined && successCallback != null) {
-                        successCallback(result, rowKey)
+                        successCallback(result, callbackData)
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     if (errorCallback != undefined && errorCallback != null) {
-                        errorCallback(jqXHR, textStatus, errorThrown, rowKey)
+                        errorCallback(jqXHR, textStatus, errorThrown, callbackData)
                     }
                 }
             });
