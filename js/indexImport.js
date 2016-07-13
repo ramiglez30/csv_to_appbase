@@ -151,10 +151,10 @@ $.extend({
                                 }
                             }
 
-                            $('#sendingProgress').attr('value', progressValue++);
+                            $('#sendingProgress').attr('value', ++progressValue);
                             $.appBaseService.saveFormData($.mappingObj, $.json_array.data, function(data) {
 
-                                $('#sendingProgress').attr('value', progressValue++);
+                                $('#sendingProgress').attr('value', ++progressValue);
                                 current++;
                                 $('#currentItem').html(current + ' of ' + total);
                                 var litem = '<li>' + data.message + '</li>'

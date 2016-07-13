@@ -247,7 +247,7 @@ $.extend({
                 }
 
                 var formQuery = storeDataArray.join(',');
-                var k = i;
+                var rowKey = i;
                 if (self.options.useMock) {
                     executed++;
                     if (callback != undefined && callback != null) {
@@ -257,10 +257,10 @@ $.extend({
                                 total: dataLength,
                                 code: 100,
                                 message: 'Data saved succesfuly --MOCK--',
-                                rowKey: k
+                                rowKey: rowKey
                             }), 500);
                     }
-                    if (executed == dataArray.length  && (endCallback != undefined && endCallback != null)) {
+                    if (executed == dataArray.length && (endCallback != undefined && endCallback != null)) {
                         endCallback({
                             code: 200,
                             message: 'All items were saved successfuly'
@@ -291,11 +291,11 @@ $.extend({
                             endCallback({
                                 code: 300,
                                 message: errorThrown,
-                                status: textStatus, 
+                                status: textStatus,
                                 rowKey: key
                             });
                         }
-                    }, k);
+                    }, rowKey);
 
                 }
             }
@@ -919,7 +919,7 @@ $.extend({
         };
 
         /** Este metodo es generico sirve para hacer las request al application base*/
-        self.serverRequest = function(commandText, successCallback, errorCallback, k) {
+        self.serverRequest = function(commandText, successCallback, errorCallback, rowKey) {
             $.ajax({
                 type: 'GET',
                 url: appBaseUrl,
@@ -929,9 +929,15 @@ $.extend({
                     command: commandText
                 },
                 success: function(result) {
-                    successCallback(result, k)},
-                error: function(jqXHR, textStatus, errorThrown ){
-                    errorCallback(jqXHR, textStatus, errorThrown , k)}
+                    if (successCallback != undefined && successCallback != null) {
+                        successCallback(result, rowKey)
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    if (errorCallback != undefined && errorCallback != null) {
+                        errorCallback(jqXHR, textStatus, errorThrown, rowKey)
+                    }
+                }
             });
         };
     }
