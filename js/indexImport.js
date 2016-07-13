@@ -30,6 +30,9 @@ $.extend({
             $('#send_data_btn').on('click', function() {
                 prepData();
             });
+
+
+
         };
 
         var prepData = function() {

@@ -83,13 +83,10 @@ $(document).ready(function() {
 
     });
 
-
     //event handler para cuando el usuario edita el texto
     $("#file_content").on("input", function(event) {
         parseCSVtoJSON.applyAsync([], seedTableData);
     });
-
-
 
     var seedHeadingMaps = function() {
         if (formObject == null) {
@@ -145,6 +142,7 @@ $(document).ready(function() {
             return 0;
         }
     };
+
     var rowCount = function() {
         if ($.json_array != null) {
             return $.json_array.data.length;
@@ -170,6 +168,7 @@ $(document).ready(function() {
         $.mappingObj.fileType = input.files[0].type;
 
     });
+
     //busca los datos desde el appbase
     $.appBaseService.getForms(function(result) {
         var keys = Object.keys(result);
