@@ -1,5 +1,6 @@
 $.extend({
     json_array: [],
+    savedMappings: [],
     selectedForm: null,
     mappingObj: {
         sourceName: '',
@@ -81,7 +82,25 @@ $(document).ready(function() {
             seedHeadingMaps();
         });
 
+        if($.savedMappings.length == 0 ){
+            loadMappings(updateMappingSelect(selectElement.options[selectElement.selectedIndex].value));
+        }else{
+            updateMappingSelect(selectElement.options[selectElement.selectedIndex].value);    
+        }   
+
     });
+
+    //event handler para el select maping
+     var updateMappingSelect = function(formName){
+        var filtered = $.savedMappings.filter(function(item) {return item.formName == formName});
+        for (item in filtered) {
+            var drop_forms = document.getElementById('mapping_names');
+            var option = document.createElement('option');
+            option.text = filtered[item].sourceName;
+            drop_forms.add(option);
+
+        }
+    }
 
     //event handler para cuando el usuario edita el texto
     $("#file_content").on("input", function(event) {
@@ -172,7 +191,7 @@ $(document).ready(function() {
     //busca los datos desde el appbase
     $.appBaseService.getForms(function(result) {
         var keys = Object.keys(result);
-        keys.forEach(key => {
+        keys.forEach(function(key) {
             var drop_forms = document.getElementById('form_names');
             var option = document.createElement('option');
             option.text = key;
@@ -180,6 +199,10 @@ $(document).ready(function() {
         });
     });
 
-
-
+    var loadMappings = function(callback){
+            $.appBaseService.getMappings(function(result){
+            $.savedMappings = result;
+            callback();
+        });
+    }
 });
